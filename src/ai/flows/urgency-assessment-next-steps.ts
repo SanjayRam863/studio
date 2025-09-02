@@ -12,6 +12,7 @@ import {
   type UrgencyAssessmentInput,
   type UrgencyAssessmentOutput,
 } from '@/ai/schemas/urgency-assessment-schemas';
+import {googleAI} from '@genkit-ai/googleai';
 
 export async function assessUrgencyAndSuggestNextSteps(
   input: UrgencyAssessmentInput
@@ -24,6 +25,7 @@ const urgencyPrompt = ai.definePrompt({
     name: 'urgencyAssessmentPrompt',
     input: { schema: UrgencyAssessmentInputSchema },
     output: { schema: UrgencyAssessmentOutputSchema },
+    model: googleAI.model('gemini-1.5-flash-latest'),
     prompt: `You are an expert medical triage AI. Your role is to assess the urgency of a patient's situation based on their vital signs and symptoms.
 
     Analyze the following data:

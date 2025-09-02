@@ -10,6 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import {googleAI} from '@genkit-ai/googleai';
 
 const RiskPredictionExplanationInputSchema = z.object({
   condition: z
@@ -54,6 +55,7 @@ const riskPredictionPrompt = ai.definePrompt({
   name: 'riskPredictionPrompt',
   input: {schema: RiskPredictionExplanationInputSchema},
   output: {schema: RiskPredictionExplanationOutputSchema},
+  model: googleAI.model('gemini-1.5-flash-latest'),
   prompt: `You are an expert medical AI. Your role is to explain a user's health risk and provide tailored recommendations.
 
 Analyze the following data:

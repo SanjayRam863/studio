@@ -9,6 +9,7 @@
  */
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import {googleAI} from '@genkit-ai/googleai';
 
 const SymptomCheckerDiseaseSuggestionsInputSchema = z.object({
   symptoms: z
@@ -45,6 +46,7 @@ const symptomCheckerPrompt = ai.definePrompt({
   name: 'symptomCheckerPrompt',
   input: {schema: SymptomCheckerDiseaseSuggestionsInputSchema},
   output: {schema: SymptomCheckerDiseaseSuggestionsOutputSchema},
+  model: googleAI.model('gemini-1.5-flash-latest'),
   prompt: `You are an AI medical assistant. A user has provided the following symptoms: "{{{symptoms}}}".
 
 Based on these symptoms, please provide:

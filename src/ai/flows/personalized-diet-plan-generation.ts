@@ -13,6 +13,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import {googleAI} from '@genkit-ai/googleai';
 
 const PersonalizedDietPlanInputSchema = z.object({
   medicalConditions: z
@@ -63,6 +64,7 @@ const dietPlanPrompt = ai.definePrompt({
   name: 'dietPlanPrompt',
   input: {schema: PersonalizedDietPlanInputSchema},
   output: {schema: PersonalizedDietPlanOutputSchema},
+  model: googleAI.model('gemini-1.5-flash-latest'),
   prompt: `You are an expert nutritionist. Create a personalized one-day diet plan based on the user's medical conditions and calorie needs.
 
 The user has the following medical conditions: {{{medicalConditions}}}.
