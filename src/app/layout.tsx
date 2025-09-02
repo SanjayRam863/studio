@@ -29,11 +29,11 @@ export default function RootLayout({
       <body className={cn('min-h-screen bg-background font-body antialiased', inter.variable)}>
         <SidebarProvider>
           <div className="relative flex min-h-dvh">
-            <div className="flex-1">
-              <AppHeader />
-              <main className="p-4 sm:pr-20 lg:p-6 lg:pt-0 lg:pr-22">{children}</main>
-            </div>
             <AppSidebar />
+            <div className="flex-1 transition-all duration-300 ease-in-out">
+              <AppHeader />
+              <main className="p-4 sm:p-6 lg:pt-0">{children}</main>
+            </div>
           </div>
         </SidebarProvider>
         <Toaster />

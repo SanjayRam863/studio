@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { Icons } from "./icons";
+import { useSidebar } from "./ui/sidebar";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: Home },
@@ -35,32 +36,33 @@ const navItems = [
 
 export function AppSidebarNav({ isMobile = false }: { isMobile?: boolean }) {
   const pathname = usePathname();
-  const NavLink = isMobile ? Link : TooltipTrigger;
+  const { isSidebarOpen } = useSidebar();
+  const NavLink = isMobile || isSidebarOpen ? 'div' : TooltipTrigger;
 
   const navLinks = navItems.map((item) => {
-    const link = (
+    const linkContent = (
       <Link
-        key={item.href}
         href={item.href}
         className={cn(
           "flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground",
           pathname === item.href && "text-foreground bg-accent rounded-md",
-          isMobile && "py-2"
+          isSidebarOpen ? "py-2" : "h-9 w-9 justify-center rounded-lg",
+           isMobile && "py-2"
         )}
       >
         <item.icon className="h-5 w-5" />
-        {isMobile ? item.label : ''}
+        {(isSidebarOpen || isMobile) && <span className="truncate">{item.label}</span>}
       </Link>
     );
 
-    if (isMobile) {
-      return link;
+    if (isMobile || isSidebarOpen) {
+      return <div key={item.href}>{linkContent}</div>
     }
 
     return (
       <Tooltip key={item.href}>
-        <NavLink asChild>{link}</NavLink>
-        <TooltipContent side="left">{item.label}</TooltipContent>
+        <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
+        <TooltipContent side="right">{item.label}</TooltipContent>
       </Tooltip>
     );
   });
@@ -69,33 +71,46 @@ export function AppSidebarNav({ isMobile = false }: { isMobile?: boolean }) {
 }
 
 export function AppSidebar() {
+  const { isSidebarOpen } = useSidebar();
   return (
-    <aside className="fixed inset-y-0 right-0 z-10 hidden w-14 flex-col border-l bg-background sm:flex">
+    <aside className={cn(
+        "fixed inset-y-0 left-0 z-10 hidden flex-col border-r bg-background sm:flex transition-all duration-300 ease-in-out",
+        isSidebarOpen ? "w-56" : "w-14"
+    )}>
       <TooltipProvider>
         <div className="flex flex-col items-center gap-4 px-2 sm:py-5 flex-grow">
           <Link
             href="/"
-            className="group flex h-9 w-9 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:h-8 md:w-8 md:text-base"
+            className={cn(
+              "group flex shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:text-base",
+               isSidebarOpen ? "h-9 w-full" : "h-9 w-9",
+            )}
           >
             <Icons.logo className="h-4 w-4 transition-all group-hover:scale-110" />
-            <span className="sr-only">HealthWise Hub</span>
+            <span className={cn("sr-only", isSidebarOpen && "!not-sr-only !whitespace-nowrap")}>HealthWise Hub</span>
           </Link>
-          <nav className="flex flex-col items-center gap-4">
+          <nav className={cn(
+              "flex flex-col gap-4",
+              isSidebarOpen ? "items-stretch w-full px-2" : "items-center"
+          )}>
             <AppSidebarNav />
           </nav>
         </div>
-        <div className="mt-auto flex flex-col items-center gap-4 px-2 sm:py-5">
+        <div className={cn("mt-auto flex flex-col items-center gap-4 px-2 sm:py-5", isSidebarOpen ? "items-stretch w-full" : "items-center")}>
           <Tooltip>
             <TooltipTrigger asChild>
               <Link
                 href="#"
-                className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8"
+                className={cn(
+                    "flex items-center gap-4 text-muted-foreground transition-colors hover:text-foreground",
+                    isSidebarOpen ? "px-2.5 py-2" : "h-9 w-9 justify-center rounded-lg"
+                )}
               >
                 <Settings className="h-5 w-5" />
-                <span className="sr-only">Settings</span>
+                {isSidebarOpen && <span className="truncate">Settings</span>}
               </Link>
             </TooltipTrigger>
-            <TooltipContent side="left">Settings</TooltipContent>
+            {!isSidebarOpen && <TooltipContent side="right">Settings</TooltipContent>}
           </Tooltip>
         </div>
       </TooltipProvider>
