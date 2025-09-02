@@ -105,12 +105,13 @@ export default function Home() {
             <Card className="flex flex-col w-full transition-all hover:shadow-md hover:-translate-y-1">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
+                  <feature.icon className="w-6 h-6 text-primary" />
                   {feature.title}
                 </CardTitle>
                 <CardDescription>{feature.description}</CardDescription>
               </CardHeader>
-              <CardContent className="flex-grow flex items-center justify-center">
-                <feature.icon className="w-16 h-16 text-primary" />
+              <CardContent className="flex-grow flex items-end justify-end">
+                 {/* Can add a mini-chart or graphic here in the future */}
               </CardContent>
             </Card>
           </Link>
