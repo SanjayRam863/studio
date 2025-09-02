@@ -45,6 +45,23 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+function parseRecommendations(text: string) {
+    const sections = text.split('### ').slice(1);
+    return sections.map(section => {
+        const [title, ...content] = section.split('\n');
+        const items = content.join('\n').split('- ').slice(1).map(item => {
+            const subItems = item.split('  - ').slice(1);
+            if (subItems.length > 0) {
+                const [main, ...rest] = item.split('\n');
+                return { main: main.replace(/-\s*\*\*(.*?)\*\*:/, '$1:'), subItems: rest.map(sub => sub.replace(/^\s*-\s*/, '')) };
+            }
+            return { main: item.replace(/\*\*(.*?)\*\*:/, '$1:'), subItems: [] };
+        });
+        return { title: title.trim(), items };
+    });
+}
+
+
 export function RiskPredictionForm() {
   const { toast } = useToast();
   const [result, setResult] = useState<{ riskScore: number; explanation: RiskPredictionExplanationOutput } | null>(null);
@@ -74,14 +91,10 @@ export function RiskPredictionForm() {
     riskScore = Math.min(Math.max(Math.round(riskScore), 5), 99);
     
     const factors: string[] = [];
-    factors.push(`Age: ${values.age}`);
-    factors.push(`BMI: ${values.bmi.toFixed(1)}`);
-    if (values.isSmoker) {
-      factors.push('Smoker');
-    }
-    if (values.hasFamilyHistory) {
-      factors.push('Family history of condition');
-    }
+    if (values.age) factors.push(`Age: ${values.age}`);
+    if (values.bmi) factors.push(`BMI: ${values.bmi.toFixed(1)}`);
+    if (values.isSmoker) factors.push('Smoker');
+    if (values.hasFamilyHistory) factors.push('Family history of condition');
 
     try {
       const explanationResult = await riskPredictionExplanation({
@@ -101,6 +114,10 @@ export function RiskPredictionForm() {
       setIsLoading(false);
     }
   }
+
+  const recommendationSections = result ? parseRecommendations(result.explanation.recommendations) : [];
+  const disclaimer = result?.explanation.recommendations.split('**Disclaimer**:')[1];
+
 
   return (
     <>
@@ -210,12 +227,39 @@ export function RiskPredictionForm() {
             </div>
             <div>
               <h3 className="font-semibold mb-2">Explanation</h3>
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{result.explanation.explanation}</p>
+              <p className="text-sm text-muted-foreground">{result.explanation.explanation}</p>
             </div>
             <div>
-              <h3 className="font-semibold mb-2">Recommendations</h3>
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{result.explanation.recommendations}</p>
+              <h3 className="font-semibold mb-4">Recommendations</h3>
+              <div className="space-y-4">
+                {recommendationSections.map((section, idx) => (
+                  <div key={idx}>
+                    <h4 className="font-medium text-md mb-2">{section.title}</h4>
+                    <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                      {section.items.map((item, itemIdx) => (
+                        <li key={itemIdx}>
+                          <span dangerouslySetInnerHTML={{ __html: item.main.replace(/\*\*(.*?)\*\*:/g, '<strong>$1:</strong>') }} />
+                          {item.subItems.length > 0 && (
+                            <ul className="list-['-_'] list-inside pl-4 mt-1 space-y-1">
+                              {item.subItems.map((sub, subIdx) => (
+                                <li key={subIdx}>{sub}</li>
+                              ))}
+                            </ul>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
             </div>
+            {disclaimer && (
+                <div className="pt-4 border-t">
+                    <p className="text-xs text-muted-foreground italic">
+                        <strong>Disclaimer:</strong>{disclaimer}
+                    </p>
+                </div>
+            )}
           </CardContent>
         </Card>
       )}
