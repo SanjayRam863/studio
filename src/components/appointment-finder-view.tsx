@@ -1,23 +1,14 @@
+
 "use client";
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, Search, QrCode } from "lucide-react";
+import { Loader2, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { Badge } from "./ui/badge";
 
 const formSchema = z.object({
   location: z.string().min(3, "Please enter a valid location."),
@@ -85,10 +76,6 @@ export function AppointmentFinderView() {
       setIsLoading(false);
     }, 1000);
   };
-
-  function onSubmit(values: FormValues) {
-    searchDoctors(values.location);
-  }
   
   function handleQrScan() {
     const simulatedLocation = "Chennai, TN";
@@ -104,35 +91,14 @@ export function AppointmentFinderView() {
     <>
       <Card>
         <CardHeader>
-            <CardTitle>Doctor Search</CardTitle>
-            <CardDescription>Enter a location manually or scan a QR code to find doctors.</CardDescription>
+            <CardTitle>Find an Appointment</CardTitle>
+            <CardDescription>Scan a location QR code to find available doctors and their schedules nearby.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="flex items-end gap-4">
-              <FormField
-                control={form.control}
-                name="location"
-                render={({ field }) => (
-                  <FormItem className="flex-grow">
-                    <FormLabel>Your Location</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Chennai, TN" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-               <Button type="button" variant="outline" onClick={handleQrScan} className="h-10">
-                <QrCode className="mr-2 h-4 w-4" />
-                Scan QR
-              </Button>
-              <Button type="submit" disabled={isLoading} className="h-10">
-                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
-                Search
-              </Button>
-            </form>
-          </Form>
+          <Button onClick={handleQrScan} disabled={isLoading} size="lg" className="w-full sm:w-auto">
+            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <QrCode className="mr-2 h-4 w-4" />}
+            Scan QR Code for Location
+          </Button>
         </CardContent>
       </Card>
       
