@@ -66,10 +66,16 @@ export function RiskPredictionForm() {
     setResult(null);
 
     // Simulate risk score generation
-    const riskScore = Math.floor(Math.random() * 80) + 10; 
+    let riskScore = 10;
+    riskScore += (values.age - 18) * 0.5;
+    riskScore += (values.bmi - 18.5) * 1.5;
+    if (values.isSmoker) riskScore += 20;
+    if (values.hasFamilyHistory) riskScore += 15;
+    riskScore = Math.min(Math.max(Math.round(riskScore), 5), 99);
+    
     const factors: string[] = [];
     factors.push(`Age: ${values.age}`);
-    factors.push(`BMI: ${values.bmi}`);
+    factors.push(`BMI: ${values.bmi.toFixed(1)}`);
     if (values.isSmoker) {
       factors.push('Smoker');
     }
@@ -94,12 +100,6 @@ export function RiskPredictionForm() {
     } finally {
       setIsLoading(false);
     }
-  }
-  
-  const getRiskColor = (score: number) => {
-    if (score > 70) return 'bg-red-500';
-    if (score > 40) return 'bg-yellow-500';
-    return 'bg-green-500';
   }
 
   return (
