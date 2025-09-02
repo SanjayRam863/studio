@@ -56,42 +56,26 @@ export type PersonalizedDietPlanOutput = z.infer<
 export async function generatePersonalizedDietPlan(
   input: PersonalizedDietPlanInput
 ): Promise<PersonalizedDietPlanOutput> {
-  return dietPlanFlow(input);
+  console.log('Generating diet plan for:', input);
+  // MOCK IMPLEMENTATION
+  const plan = {
+    dietPlan: [
+      { name: 'Breakfast', ingredients: 'Oatmeal with berries and nuts', calories: 400 },
+      { name: 'Lunch', ingredients: 'Grilled chicken salad with vinaigrette', calories: 600 },
+      { name: 'Dinner', ingredients: 'Salmon with quinoa and steamed vegetables', calories: 700 }
+    ],
+    totalCalories: 1700,
+    shoppingList: [
+      { item: 'Oats', quantity: '100g' },
+      { item: 'Mixed Berries', quantity: '50g' },
+      { item: 'Almonds', quantity: '20g' },
+      { item: 'Chicken Breast', quantity: '150g' },
+      { item: 'Mixed Greens', quantity: '100g' },
+      { item: 'Salmon Fillet', quantity: '150g' },
+      { item: 'Quinoa', quantity: '80g' },
+      { item: 'Broccoli', quantity: '1 cup' }
+    ],
+    notes: `This is a sample balanced diet plan. For your specific condition (${input.medicalConditions}), it's crucial to consult with a registered dietitian or your doctor. This plan provides a general framework for healthy eating.`
+  };
+  return new Promise(resolve => setTimeout(() => resolve(plan), 1000));
 }
-
-const dietPlanPrompt = ai.definePrompt({
-  name: 'dietPlanPrompt',
-  model: 'googleai/gemini-1.5-flash',
-  input: { schema: PersonalizedDietPlanInputSchema },
-  output: { schema: PersonalizedDietPlanOutputSchema },
-  prompt: `You are a professional nutritionist. Create a personalized one-day diet plan for a user based on their medical conditions and daily calorie needs. The plan should consist of three meals: breakfast, lunch, and dinner.
-
-User's Medical Conditions: {{{medicalConditions}}}
-User's Daily Calorie Needs: {{{calorieNeeds}}}
-
-Instructions:
-1.  **Diet Plan**: Create a diet plan with three distinct meals. Distribute the total calories appropriately across these meals. For each meal, provide a name (e.g., "Breakfast"), a list of ingredients, and the calculated calorie count.
-2.  **Total Calories**: Ensure the sum of calories from all meals closely matches the user's daily calorie needs.
-3.  **Shopping List**: Generate a consolidated shopping list of all the ingredients required for the entire day's meals, specifying the item and quantity.
-4.  **Notes**: Provide a brief, insightful note explaining the rationale behind the diet plan, especially considering the user's medical conditions. Also, include a standard disclaimer advising the user to consult with a healthcare provider. If the condition is "None", create a balanced, generally healthy diet plan.
-5.  **Tailor the plan**:
-    -   For **Diabetes**, focus on low-glycemic index foods, complex carbs, lean proteins, and healthy fats. Limit sugars and refined carbs.
-    -   For **High Blood Pressure**, create a DASH-style diet, rich in fruits, vegetables, whole grains, and low-fat dairy, while being low in sodium.
-    -   For **High Cholesterol**, focus on heart-healthy fats (like those in avocados and nuts), soluble fiber (oats, beans), and limiting saturated and trans fats.
-`,
-});
-
-const dietPlanFlow = ai.defineFlow(
-  {
-    name: 'dietPlanFlow',
-    inputSchema: PersonalizedDietPlanInputSchema,
-    outputSchema: PersonalizedDietPlanOutputSchema,
-  },
-  async (input) => {
-    const { output } = await dietPlanPrompt(input);
-    if (!output) {
-      throw new Error('The AI model did not return a valid diet plan.');
-    }
-    return output;
-  }
-);

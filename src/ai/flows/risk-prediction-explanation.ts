@@ -9,7 +9,7 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {z} from 'zod';
 
 const RiskPredictionExplanationInputSchema = z.object({
   condition: z
@@ -47,46 +47,19 @@ export type RiskPredictionExplanationOutput = z.infer<
 export async function riskPredictionExplanation(
   input: RiskPredictionExplanationInput
 ): Promise<RiskPredictionExplanationOutput> {
-  return riskPredictionFlow(input);
+    console.log("Generating risk explanation for:", input);
+    // MOCK IMPLEMENTATION
+    const mockOutput = {
+        explanation: `Your risk score of ${input.riskScore}% for ${input.condition} is influenced by factors such as: ${input.factors}. Each of these elements can contribute to the likelihood of developing this condition over time. A higher BMI, for instance, can strain the cardiovascular system.`,
+        recommendations: `### Dietary Changes
+- Reduce sodium intake to lower blood pressure.
+- Focus on whole grains, fruits, and vegetables.
+- Limit processed foods and sugary drinks.
+### Lifestyle Modifications
+- Engage in at least 30 minutes of moderate exercise daily.
+- If you smoke, consider quitting.
+- Monitor your blood pressure regularly.
+**Disclaimer**: This is a simulation and not a substitute for professional medical advice. Always consult a healthcare provider for an accurate diagnosis and treatment plan.`
+    };
+    return new Promise(resolve => setTimeout(() => resolve(mockOutput), 1000));
 }
-
-const riskPredictionPrompt = ai.definePrompt({
-    name: 'riskPredictionPrompt',
-    model: 'googleai/gemini-1.5-flash',
-    input: { schema: RiskPredictionExplanationInputSchema },
-    output: { schema: RiskPredictionExplanationOutputSchema },
-    prompt: `You are a medical expert providing a risk assessment for a user.
-Condition: {{{condition}}}
-Calculated Risk Score: {{{riskScore}}}%
-Contributing Factors: {{{factors}}}
-
-1.  **Explanation**:
-    -   Start by stating the user's risk score for the specified condition.
-    -   Briefly explain what the risk score means in simple terms.
-    -   Go through each of the contributing factors and explain clearly and concisely how it influences the risk for the specific condition. For example, explain *why* being a smoker increases the risk of heart disease.
-
-2.  **Recommendations**:
-    -   Provide specific, actionable recommendations tailored to the selected condition to help the user manage and reduce their risk.
-    -   Structure the recommendations under two markdown headings: '### Dietary Changes' and '### Lifestyle Modifications'.
-    -   Under each heading, provide a bulleted list (using '-') of 3-5 clear, practical tips.
-    -   For **Heart Disease**: Suggest the DASH or Mediterranean diet, limiting sodium and unhealthy fats, and increasing omega-3s. For lifestyle, suggest specific types and durations of exercise, stress management, and smoking cessation.
-    -   For **Diabetes**: Suggest monitoring carbs, choosing complex over simple carbs, increasing fiber, and eating balanced meals. For lifestyle, recommend regular physical activity, weight management, and blood sugar monitoring.
-    -   For **Stroke**: Suggest a diet low in cholesterol and saturated fats, increasing potassium, and limiting alcohol. For lifestyle, emphasize blood pressure control, managing atrial fibrillation if present, and knowing the signs of a stroke.
-    -   Finally, add a disclaimer at the end: '**Disclaimer**: This is a simulation and not a substitute for professional medical advice. Always consult a healthcare provider for an accurate diagnosis and treatment plan.'
-`
-});
-
-const riskPredictionFlow = ai.defineFlow(
-  {
-    name: 'riskPredictionFlow',
-    inputSchema: RiskPredictionExplanationInputSchema,
-    outputSchema: RiskPredictionExplanationOutputSchema,
-  },
-  async input => {
-    const { output } = await riskPredictionPrompt(input);
-    if (!output) {
-        throw new Error('The AI model did not return a valid explanation.');
-    }
-    return output;
-  }
-);

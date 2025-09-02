@@ -5,7 +5,6 @@
  * - assessUrgencyAndSuggestNextSteps - A function that assesses urgency and suggests next steps.
  */
 
-import {ai} from '@/ai/genkit';
 import {
   UrgencyAssessmentInputSchema,
   UrgencyAssessmentOutputSchema,
@@ -13,67 +12,82 @@ import {
   type UrgencyAssessmentOutput,
 } from '@/ai/schemas/urgency-assessment-schemas';
 
+
+const highUrgencySymptoms = [
+    'chest pain', 'difficulty breathing', 'fainting', 'loss of consciousness',
+    'uncontrolled bleeding', 'seizure', 'sudden numbness', 'sudden weakness',
+    'trouble speaking', 'vision loss'
+];
+
+const mediumUrgencySymptoms = [
+    'severe headache', 'dizziness', 'abdominal pain', 'high fever',
+    'persistent vomiting', 'persistent diarrhea', 'confusion'
+];
+
+
 export async function assessUrgencyAndSuggestNextSteps(
   input: UrgencyAssessmentInput
 ): Promise<UrgencyAssessmentOutput> {
-  return assessUrgencyFlow(input);
-}
+    
+    let urgencyLevel: 'High' | 'Medium' | 'Low' = 'Low';
+    let explanation = 'The vital signs are within a relatively stable range.';
 
-const urgencyPrompt = ai.definePrompt({
-    name: 'urgencyPrompt',
-    model: 'googleai/gemini-1.5-flash',
-    input: { schema: UrgencyAssessmentInputSchema },
-    output: { schema: UrgencyAssessmentOutputSchema },
-    prompt: `You are an AI medical assistant designed to assess the urgency of a situation based on vital signs and symptoms.
-Analyze the following user data to determine the urgency level and provide next steps.
+    // Process symptoms
+    const userSymptoms = input.symptoms.toLowerCase().split(',').map(s => s.trim());
+    const hasHighUrgencySymptom = userSymptoms.some(s => highUrgencySymptoms.includes(s));
+    const hasMediumUrgencySymptom = userSymptoms.some(s => mediumUrgencySymptoms.includes(s));
 
-User's Vitals:
-- Heart Rate: {{{heartRate}}} BPM
-- Blood Pressure: {{{bloodPressureSystolic}}}/{{{bloodPressureDiastolic}}} mmHg
-- Oxygen Saturation: {{{oxygenSaturation}}}%
-- Symptoms: {{{symptoms}}}
-
-Follow these medical standards for your assessment:
-
-1.  **Urgency Level Assignment**:
-    -   **High Urgency**: Assign this level if any of the following are met:
-        -   Blood Pressure: Systolic ≥ 180 or Diastolic ≥ 120 (Hypertensive Crisis)
-        -   Blood Pressure: Systolic < 90 or Diastolic < 60 (Potential Shock)
-        -   Heart Rate: > 130 bpm or < 40 bpm (Critical Tachycardia/Bradycardia)
-        -   Oxygen Saturation: < 90% (Severe Hypoxia)
-        -   Symptoms include any of: chest pain, difficulty breathing, fainting, loss of consciousness, uncontrolled bleeding, seizure, sudden numbness or weakness, trouble speaking, vision loss.
-    -   **Medium Urgency**: Assign this level if none of the High Urgency criteria are met, but any of the following are:
-        -   Blood Pressure: Systolic 160-179 or Diastolic 100-119
-        -   Heart Rate: 101-130 bpm or 40-49 bpm
-        -   Oxygen Saturation: 90-94%
-        -   Symptoms include any of: severe headache, dizziness, abdominal pain, high fever, persistent vomiting or diarrhea, confusion.
-    -   **Low Urgency**: If neither High nor Medium criteria are met.
-
-2.  **Explanation**:
-    -   Provide a clear, concise explanation for the assigned urgency level.
-    -   Reference the specific vital signs or symptoms that led to your conclusion. For example, "The assessment is High Urgency due to a heart rate of... and reports of chest pain."
-
-3.  **Next Steps**:
-    -   Provide direct, unambiguous next steps based on the urgency level.
-    -   **High Urgency**: "Call emergency services (e.g., 911) immediately or go to the nearest emergency room."
-    -   **Medium Urgency**: "You should contact your doctor promptly or consider visiting an urgent care center today. Do not delay seeking medical advice."
-    -   **Low Urgency**: "Monitor your symptoms at home. If they persist or worsen, schedule an appointment with your primary care physician for a follow-up." If blood pressure is elevated (Systolic > 130 or Diastolic > 85), add a note to discuss it with their doctor.
-    -   Finally, add the disclaimer: "Disclaimer: This is a simulation and not a substitute for professional medical advice. Always consult a healthcare provider for an accurate diagnosis and treatment plan."
-`
-});
-
-
-const assessUrgencyFlow = ai.defineFlow(
-    {
-        name: 'assessUrgencyFlow',
-        inputSchema: UrgencyAssessmentInputSchema,
-        outputSchema: UrgencyAssessmentOutputSchema,
-    },
-    async (input) => {
-        const { output } = await urgencyPrompt(input);
-        if (!output) {
-            throw new Error('The AI model did not return a valid assessment.');
-        }
-        return output;
+    // Urgency Logic
+    if (input.bloodPressureSystolic >= 180 || input.bloodPressureDiastolic >= 120) {
+        urgencyLevel = 'High';
+        explanation = 'Hypertensive crisis detected based on very high blood pressure.';
+    } else if (input.bloodPressureSystolic < 90 || input.bloodPressureDiastolic < 60) {
+        urgencyLevel = 'High';
+        explanation = 'Dangerously low blood pressure (potential shock) detected.';
+    } else if (input.heartRate > 130 || input.heartRate < 40) {
+        urgencyLevel = 'High';
+        explanation = 'Critical heart rate (tachycardia or bradycardia) detected.';
+    } else if (input.oxygenSaturation < 90) {
+        urgencyLevel = 'High';
+        explanation = 'Severe low oxygen saturation (hypoxia) detected.';
+    } else if (hasHighUrgencySymptom) {
+        urgencyLevel = 'High';
+        explanation = `High urgency symptoms reported, such as ${userSymptoms.find(s => highUrgencySymptoms.includes(s))}.`;
+    } else if (input.bloodPressureSystolic >= 160 || input.bloodPressureDiastolic >= 100) {
+        urgencyLevel = 'Medium';
+        explanation = 'Significantly high blood pressure detected.';
+    } else if (input.heartRate > 100 || input.heartRate < 50) {
+        urgencyLevel = 'Medium';
+        explanation = 'Abnormal heart rate detected.';
+    } else if (input.oxygenSaturation < 94) {
+        urgencyLevel = 'Medium';
+        explanation = 'Low oxygen saturation detected.';
+    } else if (hasMediumUrgencySymptom) {
+        urgencyLevel = 'Medium';
+        explanation = `Medium urgency symptoms reported, such as ${userSymptoms.find(s => mediumUrgencySymptoms.includes(s))}.`;
     }
-);
+    
+    let nextSteps = '';
+    const disclaimer = '\n\n**Disclaimer**: This is a simulation and not a substitute for professional medical advice. Always consult a healthcare provider for an accurate diagnosis and treatment plan.';
+    
+    switch (urgencyLevel) {
+        case 'High':
+            nextSteps = "Call emergency services (e.g., 911) immediately or go to the nearest emergency room.";
+            break;
+        case 'Medium':
+            nextSteps = "You should contact your doctor promptly or consider visiting an urgent care center today. Do not delay seeking medical advice.";
+            break;
+        case 'Low':
+            nextSteps = "Monitor your symptoms at home. If they persist or worsen, schedule an appointment with your primary care physician for a follow-up.";
+            if (input.bloodPressureSystolic > 130 || input.bloodPressureDiastolic > 85) {
+                nextSteps += " Your blood pressure is slightly elevated; it's recommended to discuss this with your doctor during your next visit.";
+            }
+            break;
+    }
+
+    return {
+        urgencyLevel,
+        explanation,
+        nextSteps: nextSteps + disclaimer,
+    };
+}
