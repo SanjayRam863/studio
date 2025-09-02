@@ -38,19 +38,19 @@ export type SymptomCheckerDiseaseSuggestionsOutput = z.infer<
 const symptomMap: { [key: string]: { conditions: string[], recommendations: string } } = {
     'headache': {
         conditions: ['Migraine', 'Tension Headache', 'Dehydration'],
-        recommendations: 'Rest in a quiet, dark room. Drink plenty of water. If the headache is severe or persistent, consult a doctor.'
+        recommendations: 'For headaches, rest in a quiet, dark room and drink plenty of water. If it is severe or persistent, consult a doctor.'
     },
     'fever': {
         conditions: ['Common Cold', 'Flu', 'Infection'],
-        recommendations: 'Rest, drink fluids, and take over-the-counter fever reducers. If the fever is high or lasts more than a few days, see a doctor.'
+        recommendations: 'For a fever, rest, drink fluids, and consider over-the-counter fever reducers. If the fever is high or lasts more than a few days, see a doctor.'
     },
     'cough': {
         conditions: ['Common Cold', 'Bronchitis', 'Allergies'],
-        recommendations: 'Stay hydrated. Use a humidifier. If the cough is severe or you have trouble breathing, seek medical attention.'
+        recommendations: 'For a cough, stay hydrated and use a humidifier. If you have trouble breathing, seek medical attention.'
     },
      'sore throat': {
         conditions: ['Common Cold', 'Strep Throat', 'Tonsillitis'],
-        recommendations: 'Gargle with salt water and drink warm liquids. If you have a fever and difficulty swallowing, consult a doctor to rule out strep throat.'
+        recommendations: 'For a sore throat, gargle with salt water and drink warm liquids. If you have a fever and difficulty swallowing, consult a doctor.'
     }
 };
 
@@ -76,15 +76,27 @@ export async function symptomCheckerDiseaseSuggestions(
         }
     });
 
-    if (suggestedConditions.length === 0) {
-        suggestedConditions.push('General Malaise');
-        recommendations.push('Based on your symptoms, it\'s hard to determine the cause. It is recommended to monitor your symptoms and consult a doctor if they worsen or do not improve.');
-    }
-    
     const uniqueConditions = [...new Set(suggestedConditions)];
 
+    let conditionsText: string;
+    if (uniqueConditions.length > 0) {
+      conditionsText = `Based on your symptoms, some possibilities include: ${uniqueConditions.join(', ')}.`;
+    } else {
+      conditionsText = "I couldn't identify a specific condition based on your symptoms.";
+    }
+    conditionsText += " This is not a diagnosis.";
+    
+    let recommendationsText = `You mentioned you are experiencing: ${input.symptoms}.\n\n`;
+    if (recommendations.length > 0) {
+      recommendationsText += recommendations.join('\n');
+    } else {
+      recommendationsText += 'It is recommended to monitor your symptoms and consult a doctor if they worsen or do not improve.';
+    }
+
+    recommendationsText += '\n\nDisclaimer: This is a simulation and not a substitute for professional medical advice. Always consult a healthcare provider for an accurate diagnosis and treatment plan.';
+
     return {
-        suggestedConditions: `Based on your symptoms, some possibilities include: ${uniqueConditions.join(', ')}. This is not a diagnosis.`,
-        recommendations: recommendations.join('\n') + '\n\nDisclaimer: This is a simulation and not a substitute for professional medical advice. Always consult a healthcare provider for an accurate diagnosis and treatment plan.'
+        suggestedConditions: conditionsText,
+        recommendations: recommendationsText,
     };
 }
