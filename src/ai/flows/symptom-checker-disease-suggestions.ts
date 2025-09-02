@@ -9,7 +9,6 @@
  */
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import {googleAI} from '@genkit-ai/googleai';
 
 const SymptomCheckerDiseaseSuggestionsInputSchema = z.object({
   symptoms: z
@@ -42,19 +41,15 @@ export async function symptomCheckerDiseaseSuggestions(
   return symptomCheckerFlow(input);
 }
 
-const symptomCheckerPrompt = ai.definePrompt({
-  name: 'symptomCheckerPrompt',
-  input: {schema: SymptomCheckerDiseaseSuggestionsInputSchema},
-  output: {schema: SymptomCheckerDiseaseSuggestionsOutputSchema},
-  model: googleAI.model('gemini-1.5-flash-latest'),
-  prompt: `You are an AI medical assistant. A user has provided the following symptoms: "{{{symptoms}}}".
-
-Based on these symptoms, please provide:
-1.  A list of potential, common conditions that could cause these symptoms. Do not provide a definitive diagnosis.
-2.  General, safe recommendations for what the user could do next (e.g., rest, hydrate, when to see a doctor).
-
-Acknowledge the user's symptoms in your recommendations.`,
-});
+const symptomMap: { [key: string]: string[] } = {
+  fever: ['Common Cold', 'Flu', 'Infection'],
+  cough: ['Common Cold', 'Flu', 'Bronchitis', 'Allergies'],
+  headache: ['Tension Headache', 'Migraine', 'Dehydration', 'Common Cold'],
+  'sore throat': ['Common Cold', 'Strep Throat', 'Flu'],
+  'runny nose': ['Common Cold', 'Allergies'],
+  'chest pain': ['Heart Attack (Emergency!)', 'Angina', 'Costochondritis', 'Acid Reflux'],
+  'shortness of breath': ['Asthma', 'Pneumonia', 'Heart Failure (Emergency!)'],
+};
 
 const symptomCheckerFlow = ai.defineFlow(
   {
@@ -62,17 +57,30 @@ const symptomCheckerFlow = ai.defineFlow(
     inputSchema: SymptomCheckerDiseaseSuggestionsInputSchema,
     outputSchema: SymptomCheckerDiseaseSuggestionsOutputSchema,
   },
-  async input => {
-    const {output} = await symptomCheckerPrompt(input);
-    if (!output) {
-      throw new Error('Failed to generate symptom suggestions.');
+  async (input: SymptomCheckerDiseaseSuggestionsInput) => {
+    const userSymptoms = input.symptoms.toLowerCase().split(',').map(s => s.trim());
+    const suggestions = new Set<string>();
+
+    userSymptoms.forEach(symptom => {
+      Object.keys(symptomMap).forEach(key => {
+        if (symptom.includes(key)) {
+          symptomMap[key].forEach(condition => suggestions.add(condition));
+        }
+      });
+    });
+
+    if (suggestions.size === 0) {
+      suggestions.add('General malaise');
     }
-    const disclaimer =
-      '\n\nDisclaimer: This is a simulation and not a substitute for professional medical advice. Always consult a healthcare provider for an accurate diagnosis and treatment plan.';
+
+    const suggestedConditions = `Based on your symptoms of "${input.symptoms}", some possibilities include: ${Array.from(suggestions).join(', ')}. This is not a diagnosis.`;
+    const recommendations = `Given that you're experiencing "${input.symptoms}", it's important to rest and stay hydrated. If your symptoms worsen, or if you experience severe symptoms like chest pain or difficulty breathing, please seek medical attention immediately.`;
+    
+    const disclaimer = '\n\nDisclaimer: This is a simulation and not a substitute for professional medical advice. Always consult a healthcare provider for an accurate diagnosis and treatment plan.';
 
     return {
-      suggestedConditions: `Based on your symptoms, some possibilities include: ${output.suggestedConditions}. This is not a diagnosis.`,
-      recommendations: output.recommendations + disclaimer,
+      suggestedConditions,
+      recommendations: recommendations + disclaimer,
     };
   }
 );

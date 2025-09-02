@@ -12,37 +12,12 @@ import {
   type UrgencyAssessmentInput,
   type UrgencyAssessmentOutput,
 } from '@/ai/schemas/urgency-assessment-schemas';
-import {googleAI} from '@genkit-ai/googleai';
 
 export async function assessUrgencyAndSuggestNextSteps(
   input: UrgencyAssessmentInput
 ): Promise<UrgencyAssessmentOutput> {
   return assessUrgencyFlow(input);
 }
-
-
-const urgencyPrompt = ai.definePrompt({
-    name: 'urgencyAssessmentPrompt',
-    input: { schema: UrgencyAssessmentInputSchema },
-    output: { schema: UrgencyAssessmentOutputSchema },
-    model: googleAI.model('gemini-1.5-flash-latest'),
-    prompt: `You are an expert medical triage AI. Your role is to assess the urgency of a patient's situation based on their vital signs and symptoms.
-
-    Analyze the following data:
-    - Heart Rate: {{{heartRate}}} BPM
-    - Blood Pressure: {{{bloodPressureSystolic}}}/{{{bloodPressureDiastolic}}} mmHg
-    - Oxygen Saturation: {{{oxygenSaturation}}}%
-    - Symptoms: "{{{symptoms}}}"
-
-    Based on this information, determine the urgency level (High, Medium, or Low). Provide a clear explanation for your assessment, referencing the specific data points that led to your conclusion. Finally, give specific, actionable next steps for the user.
-
-    High Urgency examples: chest pain, difficulty breathing, fainting, very high/low vitals.
-    Medium Urgency examples: severe headache, dizziness, abdominal pain, moderately abnormal vitals.
-    Low Urgency examples: stable vitals with mild or non-acute symptoms.
-
-    Always include a disclaimer that this is not a substitute for professional medical advice.`,
-});
-
 
 const assessUrgencyFlow = ai.defineFlow(
     {
@@ -51,17 +26,46 @@ const assessUrgencyFlow = ai.defineFlow(
         outputSchema: UrgencyAssessmentOutputSchema,
     },
     async (input) => {
-        const { output } = await urgencyPrompt(input);
-        if (!output) {
-            throw new Error('The AI model did not return a valid assessment.');
+        const { heartRate, bloodPressureSystolic, bloodPressureDiastolic, oxygenSaturation, symptoms } = input;
+
+        let urgencyLevel: 'High' | 'Medium' | 'Low' = 'Low';
+        let explanation = '';
+        let nextSteps = '';
+
+        const lowerSymptoms = symptoms.toLowerCase();
+
+        if (
+            heartRate > 120 || heartRate < 50 ||
+            bloodPressureSystolic > 180 || bloodPressureSystolic < 90 ||
+            bloodPressureDiastolic > 110 || bloodPressureDiastolic < 60 ||
+            oxygenSaturation < 92 ||
+            lowerSymptoms.includes('chest pain') || lowerSymptoms.includes('difficulty breathing') || lowerSymptoms.includes('fainting')
+        ) {
+            urgencyLevel = 'High';
+            explanation = 'The assessment is High Urgency due to significantly abnormal vital signs or the presence of critical symptoms like chest pain or difficulty breathing. These may indicate a life-threatening condition.';
+            nextSteps = 'Call emergency services (e.g., 911) or go to the nearest emergency room immediately.';
+        } else if (
+            heartRate > 100 || heartRate < 60 ||
+            bloodPressureSystolic > 140 || bloodPressureSystolic < 100 ||
+            bloodPressureDiastolic > 90 || bloodPressureDiastolic < 70 ||
+            oxygenSaturation < 95 ||
+            lowerSymptoms.includes('severe headache') || lowerSymptoms.includes('dizziness') || lowerSymptoms.includes('abdominal pain')
+        ) {
+            urgencyLevel = 'Medium';
+            explanation = 'The assessment is Medium Urgency because your vital signs are moderately outside the normal range or you are experiencing significant symptoms. This requires prompt medical attention.';
+            nextSteps = 'You should contact your doctor or visit an urgent care center within the next few hours. Do not delay seeking care.';
+        } else {
+            urgencyLevel = 'Low';
+            explanation = 'The assessment is Low Urgency because your vital signs are stable and the reported symptoms are not indicative of an acute, severe condition.';
+            nextSteps = 'Monitor your symptoms at home. You can schedule an appointment with your primary care physician to discuss your symptoms if they persist or worsen.';
         }
 
-        // Ensure the disclaimer is always present
         const disclaimer = '\n\nDisclaimer: This is a simulation and not a substitute for professional medical advice. Always consult a healthcare provider for an accurate diagnosis and treatment plan.';
         
         return {
-            ...output,
-            nextSteps: output.nextSteps + disclaimer,
+            urgencyLevel,
+            explanation,
+            nextSteps: nextSteps + disclaimer,
         };
     }
 );
