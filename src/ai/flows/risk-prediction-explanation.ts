@@ -1,14 +1,12 @@
 'use server';
 
 /**
- * @fileOverview This flow provides explanations for risk predictions related to Heart Disease, Diabetes, and Stroke using an AI model.
+ * @fileOverview This flow provides explanations for risk predictions related to Heart Disease, Diabetes, and Stroke.
  *
- * - riskPredictionExplanation - A function that generates AI-powered explanations for risk scores.
+ * - riskPredictionExplanation - A function that generates explanations for risk scores.
  * - RiskPredictionExplanationInput - The input type for the riskPredictionExplanation function.
  * - RiskPredictionExplanationOutput - The return type for the riskPredictionExplanation function.
  */
-
-import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const RiskPredictionExplanationInputSchema = z.object({
@@ -44,38 +42,50 @@ export type RiskPredictionExplanationOutput = z.infer<
   typeof RiskPredictionExplanationOutputSchema
 >;
 
-const riskExplanationPrompt = ai.definePrompt({
-  name: 'riskExplanationPrompt',
-  input: {schema: RiskPredictionExplanationInputSchema},
-  output: {schema: RiskPredictionExplanationOutputSchema},
-  prompt: `You are a medical expert providing a risk assessment. The user has a simulated risk score for a specific condition.
-Your task is to provide a clear, empathetic explanation of the risk score and give specific, actionable recommendations.
-
-Do not state that this is a simulation. Be direct and helpful.
-
-Condition: {{{condition}}}
-Simulated Risk Score: {{{riskScore}}}%
-Contributing Factors: {{{factors}}}
-
-Based on this information, generate:
-1.  An 'explanation' that details what the risk score means and how the contributing factors (like age, BMI, smoking) influence the risk for the specified condition.
-2.  A set of 'recommendations' that are tailored to the user's situation. Be specific. For example, instead of "eat healthy," suggest "incorporate leafy greens like spinach and kale into your diet, and reduce red meat consumption." If the user is a smoker, a key recommendation should be about quitting smoking. Provide at least 3-5 distinct recommendations. Format them as a markdown list.`,
-});
-
-const riskPredictionExplanationFlow = ai.defineFlow(
-  {
-    name: 'riskPredictionExplanationFlow',
-    inputSchema: RiskPredictionExplanationInputSchema,
-    outputSchema: RiskPredictionExplanationOutputSchema,
-  },
-  async input => {
-    const {output} = await riskExplanationPrompt(input);
-    return output!;
-  }
-);
-
 export async function riskPredictionExplanation(
   input: RiskPredictionExplanationInput
 ): Promise<RiskPredictionExplanationOutput> {
-  return riskPredictionExplanationFlow(input);
+  // Simulate a delay to mimic an API call
+  await new Promise(resolve => setTimeout(resolve, 1000));
+
+  const { condition, riskScore, factors } = input;
+  const lowercasedFactors = factors.toLowerCase();
+
+  let explanation = `Your risk score of ${riskScore}% for ${condition} is influenced by several factors. `;
+  explanation += `Specifically, these include: ${factors}. `;
+
+  if (lowercasedFactors.includes('age')) {
+    explanation += 'Age is a significant non-modifiable risk factor; risk tends to increase with age. ';
+  }
+  if (lowercasedFactors.includes('bmi')) {
+    explanation += 'A higher BMI can contribute to conditions like high blood pressure and cholesterol, increasing risk. ';
+  }
+   if (lowercasedFactors.includes('smoker')) {
+    explanation += 'Smoking damages blood vessels and can dramatically increase the risk of cardiovascular diseases. ';
+  }
+  if (lowercasedFactors.includes('family history')) {
+    explanation += 'A family history suggests a genetic predisposition, which can increase your risk. ';
+  }
+
+  let recommendations = 'Here are some tailored recommendations:\n';
+  if (lowercasedFactors.includes('bmi')) {
+      recommendations += '- Nutrition: Focus on a balanced diet rich in fruits, vegetables, and whole grains. Reduce intake of processed foods and sugary drinks.\n';
+      recommendations += '- Exercise: Aim for at least 150 minutes of moderate-intensity exercise, like brisk walking or cycling, per week.\n'
+  }
+   if (lowercasedFactors.includes('smoker')) {
+      recommendations += '- Quit Smoking: This is the single most effective step to reduce your risk. Seek support from a healthcare provider or cessation programs.\n'
+  }
+  if (riskScore > 50) {
+     recommendations += "- Regular Check-ups: Given the risk score, it's crucial to have regular check-ups with your doctor to monitor your health status.\n"
+  } else {
+      recommendations += "- Healthy Lifestyle: Continue maintaining a healthy lifestyle. Even with a lower risk score, prevention is key.\n"
+  }
+  
+  recommendations += '\nDisclaimer: This is a simulation and not a substitute for professional medical advice. Always consult a healthcare provider for an accurate diagnosis and treatment plan.';
+
+
+  return {
+    explanation,
+    recommendations,
+  };
 }
