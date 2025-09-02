@@ -60,7 +60,7 @@ export function AppSidebarNav({ isMobile = false }: { isMobile?: boolean }) {
     return (
       <Tooltip key={item.href}>
         <NavLink asChild>{link}</NavLink>
-        <TooltipContent side="right">{item.label}</TooltipContent>
+        <TooltipContent side="left">{item.label}</TooltipContent>
       </Tooltip>
     );
   });
@@ -70,7 +70,7 @@ export function AppSidebarNav({ isMobile = false }: { isMobile?: boolean }) {
 
 export function AppSidebar() {
   return (
-    <aside className="fixed inset-y-0 left-0 z-10 hidden w-14 flex-col border-r bg-background sm:flex">
+    <aside className="fixed inset-y-0 right-0 z-10 hidden w-14 flex-col border-l bg-background sm:flex">
       <TooltipProvider>
         <div className="flex flex-col items-center gap-4 px-2 sm:py-5 flex-grow">
           <Link
@@ -95,7 +95,7 @@ export function AppSidebar() {
                 <span className="sr-only">Settings</span>
               </Link>
             </TooltipTrigger>
-            <TooltipContent side="right">Settings</TooltipContent>
+            <TooltipContent side="left">Settings</TooltipContent>
           </Tooltip>
         </div>
       </TooltipProvider>
