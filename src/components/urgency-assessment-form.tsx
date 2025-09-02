@@ -21,11 +21,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import {
   assessUrgencyAndSuggestNextSteps,
-  UrgencyAssessmentOutput,
 } from "@/ai/flows/urgency-assessment-next-steps";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Slider } from "./ui/slider";
 import { Badge } from "./ui/badge";
+import type { UrgencyAssessmentOutput } from "@/ai/schemas/urgency-assessment-schemas";
 
 const formSchema = z.object({
   heartRate: z.coerce.number().min(30).max(220),

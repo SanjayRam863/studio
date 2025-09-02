@@ -3,34 +3,15 @@
  * @fileOverview Assesses the urgency of a medical situation based on health metrics and provides actionable next steps using an AI bot.
  *
  * - assessUrgencyAndSuggestNextSteps - A function that assesses urgency and suggests next steps.
- * - UrgencyAssessmentInput - The input type for the assessUrgencyAndSuggestNextSteps function.
- * - UrgencyAssessmentOutput - The return type for the assessUrgencyAndSuggestNextSteps function.
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
-
-export const UrgencyAssessmentInputSchema = z.object({
-  heartRate: z.number().describe('Heart rate in beats per minute.'),
-  bloodPressureSystolic: z
-    .number()
-    .describe('Systolic blood pressure in mmHg.'),
-  bloodPressureDiastolic: z
-    .number()
-    .describe('Diastolic blood pressure in mmHg.'),
-  oxygenSaturation: z.number().describe('Oxygen saturation percentage.'),
-  symptoms: z.string().describe('Description of symptoms experienced by the user.'),
-});
-export type UrgencyAssessmentInput = z.infer<typeof UrgencyAssessmentInputSchema>;
-
-export const UrgencyAssessmentOutputSchema = z.object({
-  urgencyLevel: z
-    .enum(['High', 'Medium', 'Low'])
-    .describe('The assessed urgency level. Use High for life-threatening situations, Medium for conditions needing prompt attention, and Low for stable conditions.'),
-  nextSteps: z.string().describe('Recommended next steps for the user based on the assessment. Be very specific, e.g., "Call emergency services (e.g., 911) or go to the nearest emergency room." for high urgency.'),
-  explanation: z.string().describe('A detailed explanation of why the urgency level was assigned, referencing the specific vitals and symptoms provided.'),
-});
-export type UrgencyAssessmentOutput = z.infer<typeof UrgencyAssessmentOutputSchema>;
+import {
+  UrgencyAssessmentInputSchema,
+  UrgencyAssessmentOutputSchema,
+  type UrgencyAssessmentInput,
+  type UrgencyAssessmentOutput,
+} from '@/ai/schemas/urgency-assessment-schemas';
 
 export async function assessUrgencyAndSuggestNextSteps(
   input: UrgencyAssessmentInput
