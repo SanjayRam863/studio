@@ -67,18 +67,21 @@ export function RiskPredictionForm() {
 
     // Simulate risk score generation
     const riskScore = Math.floor(Math.random() * 80) + 10; 
-    const factors = [
-        `Age: ${values.age}`,
-        `BMI: ${values.bmi}`,
-        values.isSmoker ? 'Smoker' : 'Non-smoker',
-        values.hasFamilyHistory ? 'Has family history' : 'No family history',
-    ].join(', ');
+    const factors: string[] = [];
+    factors.push(`Age: ${values.age}`);
+    factors.push(`BMI: ${values.bmi}`);
+    if (values.isSmoker) {
+      factors.push('Smoker');
+    }
+    if (values.hasFamilyHistory) {
+      factors.push('Family history of condition');
+    }
 
     try {
       const explanationResult = await riskPredictionExplanation({
         condition: values.condition,
         riskScore,
-        factors,
+        factors: factors.join(', '),
       });
       setResult({ riskScore, explanation: explanationResult });
     } catch (error) {
