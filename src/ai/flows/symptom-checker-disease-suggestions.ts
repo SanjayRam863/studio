@@ -1,14 +1,14 @@
 'use server';
 /**
  * @fileOverview This file defines a function for suggesting potential diseases or conditions based on user-provided symptoms,
- * and provides recommendations on what to do next.
+ * and provides recommendations on what to do next, including a simulated prescription.
  *
  * - symptomCheckerDiseaseSuggestions - The function that initiates the symptom checking process.
- * - SymptomCheckerDiseaseSuggestionsInput - The input type for the symptomCheckerDiseaseSuggestions function.
- * - SymptomCheckerDiseaseSuggestionsOutput - The output type for the symptomCheckerDiseaseSuggestions function.
+ * - SymptomCheckerDiseaseSuggestionsInput - The input type for the function.
+ * - SymptomCheckerDiseaseSuggestionsOutput - The output type for the function.
  */
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
 
 const SymptomCheckerDiseaseSuggestionsInputSchema = z.object({
   symptoms: z
@@ -30,6 +30,11 @@ const SymptomCheckerDiseaseSuggestionsOutputSchema = z.object({
     .describe(
       'Recommendations on what the user should do next, based on the suggested conditions.'
     ),
+  prescription: z
+    .string()
+    .describe(
+      'A simulated prescription for over-the-counter medication based on the symptoms. This should be formatted like a real prescription note.'
+    ),
 });
 export type SymptomCheckerDiseaseSuggestionsOutput = z.infer<
   typeof SymptomCheckerDiseaseSuggestionsOutputSchema
@@ -42,11 +47,11 @@ export async function symptomCheckerDiseaseSuggestions(
 }
 
 const symptomCheckerPrompt = ai.definePrompt({
-    name: 'symptomCheckerPrompt',
-    model: 'googleai/gemini-1.5-flash',
-    input: { schema: SymptomCheckerDiseaseSuggestionsInputSchema },
-    output: { schema: SymptomCheckerDiseaseSuggestionsOutputSchema },
-    prompt: `You are an AI medical assistant. A user has provided a list of their symptoms. Your task is to suggest potential conditions and provide general recommendations.
+  name: 'symptomCheckerPrompt',
+  model: 'googleai/gemini-1.5-flash',
+  input: { schema: SymptomCheckerDiseaseSuggestionsInputSchema },
+  output: { schema: SymptomCheckerDiseaseSuggestionsOutputSchema },
+  prompt: `You are an AI medical assistant. A user has provided a list of their symptoms. Your task is to suggest potential conditions, provide recommendations, and generate a simulated prescription for OTC medication.
 
 User's symptoms: {{{symptoms}}}
 
@@ -60,10 +65,20 @@ User's symptoms: {{{symptoms}}}
     -   Start by acknowledging their symptoms: "Given that you're experiencing '{{{symptoms}}}', it's important to...".
     -   Include advice like resting and hydrating.
     -   Crucially, advise them to seek immediate medical attention if symptoms worsen or if they experience severe symptoms (e.g., chest pain, difficulty breathing).
-    -   Conclude with a clear disclaimer: "Disclaimer: This is a simulation and not a substitute for professional medical advice. Always consult a healthcare provider for an accurate diagnosis and treatment plan."
-`
-});
 
+3.  **Simulated Prescription**:
+    -   Generate a plausible, simulated prescription for an over-the-counter (OTC) medication that could alleviate the user's symptoms.
+    -   Format it to look like a simple prescription note. Include:
+        - Patient Name: (use "User")
+        - Date: (use today's date)
+        - Medication: (e.g., Ibuprofen 200mg, Acetaminophen 500mg)
+        - Dosage: (e.g., 1-2 tablets every 4-6 hours as needed)
+        - Reason: (e.g., For relief of headache and fever)
+        - Doctor: Dr. AI Assistant (Simulated)
+    -   If the symptoms are severe or warrant a doctor's visit, the prescription should state "See a doctor for a proper diagnosis and prescription."
+    -   Conclude with a clear disclaimer: "Disclaimer: This is a simulation and not a substitute for professional medical advice. Always consult a healthcare provider for an accurate diagnosis and treatment plan."
+`,
+});
 
 const symptomCheckerFlow = ai.defineFlow(
   {

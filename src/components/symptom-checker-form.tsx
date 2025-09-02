@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2 } from "lucide-react";
+import { FileText, Loader2, Download } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +23,7 @@ import {
   SymptomCheckerDiseaseSuggestionsOutput,
 } from "@/ai/flows/symptom-checker-disease-suggestions";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
+import { Separator } from "./ui/separator";
 
 const formSchema = z.object({
   symptoms: z
@@ -62,6 +63,19 @@ export function SymptomCheckerForm() {
       setIsLoading(false);
     }
   }
+
+  const handleDownloadPrescription = () => {
+    if (!suggestions?.prescription) return;
+    const blob = new Blob([suggestions.prescription], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'prescription.txt';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <>
@@ -116,10 +130,30 @@ export function SymptomCheckerForm() {
               <h3 className="font-semibold text-lg mb-2">Suggested Conditions</h3>
               <p className="text-sm text-muted-foreground whitespace-pre-wrap">{suggestions.suggestedConditions}</p>
             </div>
+            <Separator />
             <div>
               <h3 className="font-semibold text-lg mb-2">Recommendations</h3>
               <p className="text-sm text-muted-foreground whitespace-pre-wrap">{suggestions.recommendations}</p>
             </div>
+            {suggestions.prescription && (
+                <>
+                    <Separator />
+                    <div>
+                        <div className="flex justify-between items-center mb-2">
+                             <h3 className="font-semibold text-lg">Simulated Prescription</h3>
+                             <Button variant="outline" size="sm" onClick={handleDownloadPrescription}>
+                                <Download className="mr-2 h-4 w-4" />
+                                Download
+                             </Button>
+                        </div>
+                        <Card className="bg-muted/50">
+                            <CardContent className="p-4">
+                                <pre className="text-sm text-muted-foreground whitespace-pre-wrap font-mono">{suggestions.prescription}</pre>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </>
+            )}
           </CardContent>
         </Card>
       )}

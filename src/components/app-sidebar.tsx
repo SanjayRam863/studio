@@ -12,6 +12,10 @@ import {
   ShieldAlert,
   Stethoscope,
   Settings,
+  Syringe,
+  Truck,
+  HelpingHand,
+  Ambulance,
 } from "lucide-react";
 import {
   Tooltip,
@@ -32,6 +36,10 @@ const navItems = [
   { href: "/insulin-tracker", label: "Insulin Tracker", icon: Droplets },
   { href: "/symptom-checker", label: "Symptom Checker", icon: Stethoscope },
   { href: "/emergency-info", label: "Emergency Info", icon: Contact },
+  { href: "/blood-transfusion", label: "Blood Transfusion", icon: Syringe },
+  { href: "/medicine-delivery", label: "Medicine Delivery", icon: Truck },
+  { href: "/medical-attenders", label: "Medical Attenders", icon: HelpingHand },
+  { href: "/first-aid", label: "First Aid", icon: Ambulance },
 ];
 
 export function AppSidebarNav({ isMobile = false }: { isMobile?: boolean }) {

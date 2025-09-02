@@ -7,6 +7,11 @@ import {
   HeartPulse,
   ShieldAlert,
   Stethoscope,
+  Ambulance,
+  Truck,
+  Syringe,
+  HelpingHand,
+  FileText,
 } from "lucide-react";
 import {
   Card,
@@ -58,6 +63,30 @@ const features = [
     description: "Manage your emergency data.",
     href: "/emergency-info",
     icon: Contact,
+  },
+  {
+    title: "Blood Transfusion",
+    description: "Find donors or recipients.",
+    href: "/blood-transfusion",
+    icon: Syringe,
+  },
+  {
+    title: "Medicine Delivery",
+    description: "Order your medicines.",
+    href: "/medicine-delivery",
+    icon: Truck,
+  },
+  {
+    title: "Medical Attenders",
+    description: "Find senior care.",
+    href: "/medical-attenders",
+    icon: HelpingHand,
+  },
+  {
+    title: "First Aid",
+    description: "Get first aid procedures.",
+    href: "/first-aid",
+    icon: Ambulance,
   },
 ];
 
