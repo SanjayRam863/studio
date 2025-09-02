@@ -68,15 +68,31 @@ export async function riskPredictionExplanation(
   }
 
   let recommendations = 'Here are some tailored recommendations:\n';
+  
+  // General recommendations based on factors
   if (lowercasedFactors.includes('bmi')) {
       recommendations += '- Nutrition: Focus on a balanced diet rich in fruits, vegetables, and whole grains. Reduce intake of processed foods and sugary drinks.\n';
       recommendations += '- Exercise: Aim for at least 150 minutes of moderate-intensity exercise, like brisk walking or cycling, per week.\n'
   }
    if (lowercasedFactors.includes('smoker')) {
-      recommendations += '- Quit Smoking: This is the single most effective step to reduce your risk. Seek support from a healthcare provider or cessation programs.\n'
+      recommendations += '- Quit Smoking: This is a critical step. Seek support from a healthcare provider or cessation programs.\n'
   }
+
+  // Condition-specific recommendations
+  if (condition === 'Heart Disease') {
+    recommendations += '- Diet: Emphasize a heart-healthy diet, low in sodium and saturated fats. Incorporate foods like oats, fatty fish (salmon), and nuts.\n';
+    recommendations += '- Monitoring: Regularly check your blood pressure and cholesterol levels.\n';
+  } else if (condition === 'Diabetes') {
+    recommendations += '- Diet: Monitor carbohydrate intake and focus on low-glycemic foods to manage blood sugar levels. Prioritize fiber-rich foods.\n';
+    recommendations += '- Monitoring: Regularly check your blood glucose levels as advised by your doctor.\n';
+  } else if (condition === 'Stroke') {
+    recommendations += '- Blood Pressure Control: Managing high blood pressure is the most critical step to reduce stroke risk. \n';
+    recommendations += '- Know the Signs: Be aware of the signs of a stroke (F.A.S.T: Face drooping, Arm weakness, Speech difficulty, Time to call emergency services).\n';
+  }
+
+
   if (riskScore > 50) {
-     recommendations += "- Regular Check-ups: Given the risk score, it's crucial to have regular check-ups with your doctor to monitor your health status.\n"
+     recommendations += "- Regular Check-ups: Given the risk score, it's crucial to have regular check-ups with your doctor to monitor your health status and discuss a personalized prevention plan.\n"
   } else {
       recommendations += "- Healthy Lifestyle: Continue maintaining a healthy lifestyle. Even with a lower risk score, prevention is key.\n"
   }
