@@ -16,6 +16,7 @@ import {
   Truck,
   HelpingHand,
   Ambulance,
+  CalendarClock,
 } from "lucide-react";
 import {
   Tooltip,
@@ -35,6 +36,7 @@ const navItems = [
   { href: "/medication", label: "Medication", icon: Bell },
   { href: "/insulin-tracker", label: "Insulin Tracker", icon: Droplets },
   { href: "/symptom-checker", label: "Symptom Checker", icon: Stethoscope },
+  { href: "/appointment-finder", label: "Appointment Finder", icon: CalendarClock },
   { href: "/emergency-info", label: "Emergency Info", icon: Contact },
   { href: "/blood-transfusion", label: "Blood Transfusion", icon: Syringe },
   { href: "/medicine-delivery", label: "Medicine Delivery", icon: Truck },

@@ -11,6 +11,7 @@ import {
   Truck,
   Syringe,
   HelpingHand,
+  CalendarClock,
 } from "lucide-react";
 import {
   Card,
@@ -66,6 +67,12 @@ const featureCategories = [
         description: "Monitor your insulin usage.",
         href: "/insulin-tracker",
         icon: Droplets,
+      },
+       {
+        title: "Appointment Finder",
+        description: "Find doctor appointments.",
+        href: "/appointment-finder",
+        icon: CalendarClock,
       },
     ],
   },
