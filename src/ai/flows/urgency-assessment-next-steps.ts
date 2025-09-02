@@ -32,32 +32,45 @@ const assessUrgencyFlow = ai.defineFlow(
         let explanation = '';
         let nextSteps = '';
 
-        const lowerSymptoms = symptoms.toLowerCase();
+        const userSymptoms = symptoms.toLowerCase().split(',').map(s => s.trim()).filter(s => s);
 
+        const highUrgencySymptoms = ['chest pain', 'difficulty breathing', 'fainting', 'loss of consciousness', 'uncontrolled bleeding', 'seizure', 'severe pain', 'sudden numbness or weakness', 'trouble speaking', 'vision loss'];
+        const mediumUrgencySymptoms = ['severe headache', 'dizziness', 'abdominal pain', 'high fever', 'vomiting or diarrhea', 'rash', 'confusion', 'shortness of breath with exertion'];
+
+        const hasHighUrgencySymptom = userSymptoms.some(userSymptom => highUrgencySymptoms.includes(userSymptom));
+        const hasMediumUrgencySymptom = userSymptoms.some(userSymptom => mediumUrgencySymptoms.includes(userSymptom));
+
+        // High Urgency checks (Hypertensive Crisis, Shock, Severe Hypoxia, Critical Tachy/Bradycardia)
         if (
-            heartRate > 120 || heartRate < 50 ||
-            bloodPressureSystolic > 180 || bloodPressureSystolic < 90 ||
-            bloodPressureDiastolic > 110 || bloodPressureDiastolic < 60 ||
-            oxygenSaturation < 92 ||
-            lowerSymptoms.includes('chest pain') || lowerSymptoms.includes('difficulty breathing') || lowerSymptoms.includes('fainting')
+            bloodPressureSystolic >= 180 || bloodPressureDiastolic >= 120 ||
+            bloodPressureSystolic < 90 || bloodPressureDiastolic < 60 ||
+            oxygenSaturation < 90 ||
+            heartRate > 130 || heartRate < 40 ||
+            hasHighUrgencySymptom
         ) {
             urgencyLevel = 'High';
-            explanation = 'The assessment is High Urgency due to significantly abnormal vital signs or the presence of critical symptoms like chest pain or difficulty breathing. These may indicate a life-threatening condition.';
-            nextSteps = 'Call emergency services (e.g., 911) or go to the nearest emergency room immediately.';
-        } else if (
-            heartRate > 100 || heartRate < 60 ||
-            bloodPressureSystolic > 140 || bloodPressureSystolic < 100 ||
-            bloodPressureDiastolic > 90 || bloodPressureDiastolic < 70 ||
-            oxygenSaturation < 95 ||
-            lowerSymptoms.includes('severe headache') || lowerSymptoms.includes('dizziness') || lowerSymptoms.includes('abdominal pain')
+            explanation = 'The assessment is High Urgency due to critical vital signs or the presence of life-threatening symptoms (such as chest pain, difficulty breathing, or fainting). These signs may indicate a severe medical emergency.';
+            nextSteps = 'Call emergency services (e.g., 911) immediately or go to the nearest emergency room.';
+        } 
+        // Medium Urgency checks (Hypertensive Urgency, moderate vital sign deviation)
+        else if (
+            (bloodPressureSystolic >= 160 && bloodPressureSystolic < 180) || (bloodPressureDiastolic >= 100 && bloodPressureDiastolic < 120) ||
+            (oxygenSaturation >= 90 && oxygenSaturation < 94) ||
+            (heartRate > 100 && heartRate <= 130) || (heartRate >= 40 && heartRate < 50) ||
+            hasMediumUrgencySymptom
         ) {
             urgencyLevel = 'Medium';
-            explanation = 'The assessment is Medium Urgency because your vital signs are moderately outside the normal range or you are experiencing significant symptoms. This requires prompt medical attention.';
-            nextSteps = 'You should contact your doctor or visit an urgent care center within the next few hours. Do not delay seeking care.';
-        } else {
+            explanation = 'The assessment is Medium Urgency because your vital signs are significantly outside the normal range or you are experiencing symptoms (like severe headache or dizziness) that require prompt medical evaluation.';
+            nextSteps = 'You should contact your doctor promptly or consider visiting an urgent care center today. Do not delay seeking medical advice.';
+        } 
+        // Low Urgency checks (Prehypertension or mild symptoms)
+        else {
             urgencyLevel = 'Low';
-            explanation = 'The assessment is Low Urgency because your vital signs are stable and the reported symptoms are not indicative of an acute, severe condition.';
-            nextSteps = 'Monitor your symptoms at home. You can schedule an appointment with your primary care physician to discuss your symptoms if they persist or worsen.';
+            explanation = 'The assessment is Low Urgency. Your vital signs are relatively stable, and the reported symptoms do not suggest an immediate, severe condition. However, you should continue to monitor your health.';
+            nextSteps = 'Monitor your symptoms at home. If they persist or worsen, schedule an appointment with your primary care physician for a follow-up.';
+            if (bloodPressureSystolic >= 130 || bloodPressureDiastolic >= 85) {
+                explanation += ' Your blood pressure is elevated, which should be discussed with a doctor.';
+            }
         }
 
         const disclaimer = '\n\nDisclaimer: This is a simulation and not a substitute for professional medical advice. Always consult a healthcare provider for an accurate diagnosis and treatment plan.';
