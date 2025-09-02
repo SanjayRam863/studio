@@ -50,6 +50,32 @@ export async function riskPredictionExplanation(
   return riskPredictionFlow(input);
 }
 
+const riskPredictionPrompt = ai.definePrompt({
+    name: 'riskPredictionPrompt',
+    model: 'googleai/gemini-1.5-flash',
+    input: { schema: RiskPredictionExplanationInputSchema },
+    output: { schema: RiskPredictionExplanationOutputSchema },
+    prompt: `You are a medical expert providing a risk assessment for a user.
+Condition: {{{condition}}}
+Calculated Risk Score: {{{riskScore}}}%
+Contributing Factors: {{{factors}}}
+
+1.  **Explanation**:
+    -   Start by stating the user's risk score for the specified condition.
+    -   Briefly explain what the risk score means in simple terms.
+    -   Go through each of the contributing factors and explain clearly and concisely how it influences the risk for the specific condition. For example, explain *why* being a smoker increases the risk of heart disease.
+
+2.  **Recommendations**:
+    -   Provide specific, actionable recommendations tailored to the selected condition to help the user manage and reduce their risk.
+    -   Structure the recommendations under two markdown headings: '### Dietary Changes' and '### Lifestyle Modifications'.
+    -   Under each heading, provide a bulleted list (using '-') of 3-5 clear, practical tips.
+    -   For **Heart Disease**: Suggest the DASH or Mediterranean diet, limiting sodium and unhealthy fats, and increasing omega-3s. For lifestyle, suggest specific types and durations of exercise, stress management, and smoking cessation.
+    -   For **Diabetes**: Suggest monitoring carbs, choosing complex over simple carbs, increasing fiber, and eating balanced meals. For lifestyle, recommend regular physical activity, weight management, and blood sugar monitoring.
+    -   For **Stroke**: Suggest a diet low in cholesterol and saturated fats, increasing potassium, and limiting alcohol. For lifestyle, emphasize blood pressure control, managing atrial fibrillation if present, and knowing the signs of a stroke.
+    -   Finally, add a disclaimer at the end: '**Disclaimer**: This is a simulation and not a substitute for professional medical advice. Always consult a healthcare provider for an accurate diagnosis and treatment plan.'
+`
+});
+
 const riskPredictionFlow = ai.defineFlow(
   {
     name: 'riskPredictionFlow',
@@ -57,53 +83,10 @@ const riskPredictionFlow = ai.defineFlow(
     outputSchema: RiskPredictionExplanationOutputSchema,
   },
   async input => {
-    const { condition, riskScore, factors } = input;
-    
-    let explanation = `Your risk score of ${riskScore}% for ${condition} is based on several factors. A higher score suggests a greater likelihood of developing the condition. The contributing factors identified were: ${factors}. Each of these can influence your risk in different ways. For example, age is a known risk factor, and a higher BMI can strain your body's systems.`;
-    
-    let recommendations = '';
-
-    switch (condition) {
-      case 'Heart Disease':
-        recommendations = `
-### Dietary Changes
-- Adopt a DASH (Dietary Approaches to Stop Hypertension) or Mediterranean diet.
-- Reduce sodium intake to less than 2,300 milligrams per day.
-- Limit saturated and trans fats found in red meat and full-fat dairy.
-### Lifestyle Modifications
-- Engage in at least 150 minutes of moderate-intensity aerobic exercise per week.
-- If you smoke, quitting is the single most effective way to reduce your risk.
-- Manage stress through techniques like meditation or yoga.`;
-        break;
-      case 'Diabetes':
-        recommendations = `
-### Dietary Changes
-- Monitor carbohydrate intake and choose complex carbohydrates (whole grains, legumes) over simple sugars.
-- Increase your intake of fiber-rich foods.
-- Eat regular, balanced meals to help manage blood sugar levels.
-### Lifestyle Modifications
-- Aim for at least 30 minutes of physical activity most days of the week.
-- Monitor your blood sugar levels as recommended by a healthcare provider.
-- Maintain a healthy weight, as excess body fat can increase insulin resistance.`;
-        break;
-      case 'Stroke':
-        recommendations = `
-### Dietary Changes
-- Focus on a diet low in cholesterol and saturated fats.
-- Increase potassium intake from sources like bananas, spinach, and sweet potatoes to help manage blood pressure.
-- Limit alcohol consumption.
-### Lifestyle Modifications
-- Control high blood pressure through diet, exercise, and medication if prescribed.
-- If you have atrial fibrillation, work with your doctor to manage it.
-- Understand the signs of a stroke (FAST: Face drooping, Arm weakness, Speech difficulty, Time to call emergency services).`;
-        break;
+    const { output } = await riskPredictionPrompt(input);
+    if (!output) {
+        throw new Error('The AI model did not return a valid explanation.');
     }
-
-    const disclaimer = '\n\n**Disclaimer**: This is a simulation and not a substitute for professional medical advice. Always consult a healthcare provider for an accurate diagnosis and treatment plan.';
-    
-    return {
-      explanation,
-      recommendations: recommendations + disclaimer,
-    };
+    return output;
   }
 );

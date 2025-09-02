@@ -41,15 +41,29 @@ export async function symptomCheckerDiseaseSuggestions(
   return symptomCheckerFlow(input);
 }
 
-const symptomMap: { [key: string]: string[] } = {
-  fever: ['Common Cold', 'Flu', 'Infection'],
-  cough: ['Common Cold', 'Flu', 'Bronchitis', 'Allergies'],
-  headache: ['Tension Headache', 'Migraine', 'Dehydration', 'Common Cold'],
-  'sore throat': ['Common Cold', 'Strep Throat', 'Flu'],
-  'runny nose': ['Common Cold', 'Allergies'],
-  'chest pain': ['Heart Attack (Emergency!)', 'Angina', 'Costochondritis', 'Acid Reflux'],
-  'shortness of breath': ['Asthma', 'Pneumonia', 'Heart Failure (Emergency!)'],
-};
+const symptomCheckerPrompt = ai.definePrompt({
+    name: 'symptomCheckerPrompt',
+    model: 'googleai/gemini-1.5-flash',
+    input: { schema: SymptomCheckerDiseaseSuggestionsInputSchema },
+    output: { schema: SymptomCheckerDiseaseSuggestionsOutputSchema },
+    prompt: `You are an AI medical assistant. A user has provided a list of their symptoms. Your task is to suggest potential conditions and provide general recommendations.
+
+User's symptoms: {{{symptoms}}}
+
+1.  **Suggested Conditions**:
+    -   Based on the user's symptoms, list 3-5 potential, common medical conditions.
+    -   Phrase the output carefully, starting with: "Based on your symptoms of '{{{symptoms}}}', some possibilities include: [list of conditions]".
+    -   Explicitly state that this is not a diagnosis.
+
+2.  **Recommendations**:
+    -   Provide general, safe recommendations for the user.
+    -   Start by acknowledging their symptoms: "Given that you're experiencing '{{{symptoms}}}', it's important to...".
+    -   Include advice like resting and hydrating.
+    -   Crucially, advise them to seek immediate medical attention if symptoms worsen or if they experience severe symptoms (e.g., chest pain, difficulty breathing).
+    -   Conclude with a clear disclaimer: "Disclaimer: This is a simulation and not a substitute for professional medical advice. Always consult a healthcare provider for an accurate diagnosis and treatment plan."
+`
+});
+
 
 const symptomCheckerFlow = ai.defineFlow(
   {
@@ -58,29 +72,10 @@ const symptomCheckerFlow = ai.defineFlow(
     outputSchema: SymptomCheckerDiseaseSuggestionsOutputSchema,
   },
   async (input: SymptomCheckerDiseaseSuggestionsInput) => {
-    const userSymptoms = input.symptoms.toLowerCase().split(',').map(s => s.trim());
-    const suggestions = new Set<string>();
-
-    userSymptoms.forEach(symptom => {
-      Object.keys(symptomMap).forEach(key => {
-        if (symptom.includes(key)) {
-          symptomMap[key].forEach(condition => suggestions.add(condition));
-        }
-      });
-    });
-
-    if (suggestions.size === 0) {
-      suggestions.add('General malaise');
+    const { output } = await symptomCheckerPrompt(input);
+    if (!output) {
+      throw new Error('The AI model did not return a valid suggestion.');
     }
-
-    const suggestedConditions = `Based on your symptoms of "${input.symptoms}", some possibilities include: ${Array.from(suggestions).join(', ')}. This is not a diagnosis.`;
-    const recommendations = `Given that you're experiencing "${input.symptoms}", it's important to rest and stay hydrated. If your symptoms worsen, or if you experience severe symptoms like chest pain or difficulty breathing, please seek medical attention immediately.`;
-    
-    const disclaimer = '\n\nDisclaimer: This is a simulation and not a substitute for professional medical advice. Always consult a healthcare provider for an accurate diagnosis and treatment plan.';
-
-    return {
-      suggestedConditions,
-      recommendations: recommendations + disclaimer,
-    };
+    return output;
   }
 );
