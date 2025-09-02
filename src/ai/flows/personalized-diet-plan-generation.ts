@@ -2,7 +2,7 @@
 /**
  * @fileOverview Personalized diet plan generation flow.
  *
- * This file defines a Genkit flow that generates a personalized diet plan based on user-provided medical conditions and calorie needs.
+ * This file defines a function that generates a personalized diet plan based on user-provided medical conditions and calorie needs.
  *
  * @exports {
  *   generatePersonalizedDietPlan - Function to trigger the diet plan generation flow.
@@ -11,9 +11,7 @@
  * }
  */
 
-import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import wav from 'wav';
 
 const PersonalizedDietPlanInputSchema = z.object({
   medicalConditions: z
@@ -44,68 +42,71 @@ const PersonalizedDietPlanOutputSchema = z.object({
 });
 export type PersonalizedDietPlanOutput = z.infer<typeof PersonalizedDietPlanOutputSchema>;
 
-const generatePersonalizedDietPlanPrompt = ai.definePrompt({
-  name: 'generatePersonalizedDietPlanPrompt',
-  input: {schema: PersonalizedDietPlanInputSchema},
-  output: {schema: PersonalizedDietPlanOutputSchema},
-  prompt: `You are a registered dietitian creating a personalized diet plan.
-
-  Consider the following medical conditions: {{{medicalConditions}}}
-  The user needs to consume approximately {{{calorieNeeds}}} calories per day.
-
-  Create a diet plan with meal suggestions, a breakdown of calories for each meal, and a shopping list.  The output should be in JSON format and should validate against the PersonalizedDietPlanOutputSchema schema.
-
-  Important:
-  - Ensure the total calories in the diet plan matches the calorie needs of the user.
-  - The shopping list should contain all the items required to prepare the meals in the diet plan.
-  - Consider medical conditions to avoid any ingredient that could be harmful for the user.
-  - Generate shopping list items with realistic quantities.
-
-  Remember, the diet plan must be returned in JSON format and it must validate against the PersonalizedDietPlanOutputSchema. Include \"notes\" regarding medical conditions that the user should be aware of.
-  {
-    \"dietPlan\": [
-      {
-        \"name\": \"Meal 1 Name\",
-        \"ingredients\": \"Ingredient 1, Ingredient 2, Ingredient 3\",
-        \"calories\": 500
-      },
-      {
-        \"name\": \"Meal 2 Name\",
-        \"ingredients\": \"Ingredient A, Ingredient B, Ingredient C\",
-        \"calories\": 600
-      }
-    ],
-    \"totalCalories\": 1100,
-    \"shoppingList\": [
-      {
-        \"item\": \"Ingredient 1\",
-        \"quantity\": \"100g\"
-      },
-      {
-        \"item\": \"Ingredient 2\",
-        \"quantity\": \"50g\"
-      }
-    ],
-    \"notes\": \"Avoid processed foods.\"
-  }
-  `,
-});
-
-const personalizedDietPlanGenerationFlow = ai.defineFlow(
-  {
-    name: 'personalizedDietPlanGenerationFlow',
-    inputSchema: PersonalizedDietPlanInputSchema,
-    outputSchema: PersonalizedDietPlanOutputSchema,
-  },
-  async input => {
-    const {output} = await generatePersonalizedDietPlanPrompt(input);
-    return output!;
-  }
-);
-
 export async function generatePersonalizedDietPlan(
   input: PersonalizedDietPlanInput
 ): Promise<PersonalizedDietPlanOutput> {
-  return personalizedDietPlanGenerationFlow(input);
-}
+  // Simulate a delay to mimic an API call
+  await new Promise(resolve => setTimeout(resolve, 1000));
 
+  const { medicalConditions, calorieNeeds } = input;
+
+  const breakfastCalories = Math.round(calorieNeeds * 0.25);
+  const lunchCalories = Math.round(calorieNeeds * 0.35);
+  const dinnerCalories = Math.round(calorieNeeds * 0.40);
+
+  const dietPlan = [
+    {
+      name: 'Breakfast: Oatmeal with Berries',
+      ingredients: 'Rolled Oats, Mixed Berries (Fresh or Frozen), Almond Milk, Chia Seeds',
+      calories: breakfastCalories,
+    },
+    {
+      name: 'Lunch: Grilled Chicken Salad',
+      ingredients: 'Grilled Chicken Breast, Mixed Greens, Cherry Tomatoes, Cucumber, Olive Oil Vinaigrette',
+      calories: lunchCalories,
+    },
+    {
+      name: 'Dinner: Salmon with Quinoa and Steamed Vegetables',
+      ingredients: 'Salmon Fillet, Quinoa, Broccoli, Carrots, Lemon',
+      calories: dinnerCalories,
+    },
+  ];
+
+  const shoppingList = [
+    { item: 'Rolled Oats', quantity: '500g' },
+    { item: 'Mixed Berries', quantity: '300g' },
+    { item: 'Almond Milk', quantity: '1L' },
+    { item: 'Chia Seeds', quantity: '100g' },
+    { item: 'Chicken Breast', quantity: '400g' },
+    { item: 'Mixed Greens', quantity: '1 bag' },
+    { item: 'Cherry Tomatoes', quantity: '1 punnet' },
+    { item: 'Cucumber', quantity: '1' },
+    { item: 'Olive Oil', quantity: '1 bottle' },
+    { item: 'Salmon Fillet', quantity: '300g' },
+    { item: 'Quinoa', quantity: '250g' },
+    { item: 'Broccoli', quantity: '1 head' },
+    { item: 'Carrots', quantity: '1 bag' },
+    { item: 'Lemon', quantity: '2' },
+  ];
+  
+  let notes = "This is a general healthy diet plan. ";
+  if (medicalConditions.toLowerCase().includes('diabetes')) {
+    notes += "For diabetes, it's important to monitor carbohydrate intake and choose whole grains. This plan incorporates this, but portion control is key. ";
+  }
+  if (medicalConditions.toLowerCase().includes('high blood pressure')) {
+    notes += "To manage high blood pressure, this plan is low in sodium. Avoid adding extra salt to your meals. ";
+  }
+  if (medicalConditions.toLowerCase() === 'none' || medicalConditions.trim() === '') {
+    notes += "Since you have no specific medical conditions, focus on maintaining a balanced diet and regular physical activity."
+  } else {
+    notes += `Always consult with your doctor or a registered dietitian for advice tailored to your specific health needs, especially concerning '${medicalConditions}'.`
+  }
+  
+
+  return {
+    dietPlan,
+    totalCalories: breakfastCalories + lunchCalories + dinnerCalories,
+    shoppingList,
+    notes,
+  };
+}
