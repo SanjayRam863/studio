@@ -21,14 +21,14 @@ const MedicalAttenderInputSchema = z.object({
 export type MedicalAttenderInput = z.infer<typeof MedicalAttenderInputSchema>;
 
 const AttenderSchema = z.object({
-    name: z.string().describe("The name of the agency or individual attender."),
-    address: z.string().describe("The physical address of the attender."),
-    contact: z.string().describe("The phone number or email for contacting the attender."),
-    services: z.array(z.string()).describe("A list of services offered (e.g., 'In-home care', '24/7 support')."),
+    name: z.string().describe("The name of the doctor or specialist."),
+    address: z.string().describe("The clinic or hospital address."),
+    contact: z.string().describe("The phone number for the clinic/hospital."),
+    services: z.array(z.string()).describe("A list of specializations (e.g., 'Cardiologist', 'General Physician')."),
 });
 
 const MedicalAttenderOutputSchema = z.object({
-  attenders: z.array(AttenderSchema).describe("A list of medical attenders found."),
+  attenders: z.array(AttenderSchema).describe("A list of doctors found."),
   response: z.string().describe("A summary of the search results or a message if no results were found.")
 });
 export type MedicalAttenderOutput = z.infer<typeof MedicalAttenderOutputSchema>;
@@ -37,7 +37,7 @@ export type MedicalAttenderOutput = z.infer<typeof MedicalAttenderOutputSchema>;
 const findAttendersTool = ai.defineTool(
     {
         name: 'findAttendersTool',
-        description: 'Finds medical attenders for senior citizens in a specific location. Returns a list of attenders or an empty list if none are found.',
+        description: 'Finds doctors and specialists in a specific location. Returns a list of doctors or an empty list if none are found.',
         inputSchema: MedicalAttenderInputSchema,
         outputSchema: z.object({
             attenders: z.array(AttenderSchema),
@@ -45,21 +45,23 @@ const findAttendersTool = ai.defineTool(
     },
     async (input) => {
         // This is a mock implementation. In a real application, this would
-        // call a real API or database to find attenders.
-        console.log(`Searching for attenders in ${input.location}...`);
+        // call a real API or database to find doctors.
+        console.log(`Searching for doctors in ${input.location}...`);
 
-        // Simulate a database of attenders
+        // Simulate a database of doctors
         const mockDatabase: { [key: string]: z.infer<typeof AttenderSchema>[] } = {
             "chennai, tn": [
-                { name: "Chennai Senior Care", address: "123 Anna Salai, Chennai, TN", contact: "044-12345678", services: ["In-home care", "Meal prep"] },
-                { name: "Marina Home Health", address: "456 Beach Rd, Chennai, TN", contact: "044-87654321", services: ["24/7 support", "Medical reminders"] },
+                { name: "Dr. Priya Sharma", address: "Apollo Hospital, Greams Road, Chennai", contact: "044-28293333", services: ["Cardiologist"] },
+                { name: "Dr. Arjun Reddy", address: "Fortis Malar Hospital, Adyar, Chennai", contact: "044-42892222", services: ["Orthopedic Surgeon"] },
+                { name: "Dr. Anjali Mehta", address: "MGM Healthcare, Aminjikarai, Chennai", contact: "044-45242424", services: ["Neurologist", "General Physician"] },
             ],
             "coimbatore, tn": [
-                { name: "Kovai Elder Services", address: "789 Race Course Rd, Coimbatore, TN", contact: "0422-98765432", services: ["Companionship", "Personal care"] },
+                { name: "Dr. Suresh Kumar", address: "PSG Hospitals, Peelamedu, Coimbatore", contact: "0422-2570170", services: ["Pediatrician"] },
+                { name: "Dr. Kavitha Nair", address: "G. Kuppuswamy Naidu Memorial Hospital, Pappanaickenpalayam, Coimbatore", contact: "0422-2245000", services: ["Dermatologist"] },
             ],
         };
 
-        const key = input.location.toLowerCase();
+        const key = input.location.toLowerCase().trim();
         return {
             attenders: mockDatabase[key] || [],
         };
@@ -69,35 +71,18 @@ const findAttendersTool = ai.defineTool(
 export async function findMedicalAttenders(
   input: MedicalAttenderInput
 ): Promise<MedicalAttenderOutput> {
-  return medicalAttenderFlow(input);
-}
-
-const medicalAttenderPrompt = ai.definePrompt({
-  name: 'medicalAttenderPrompt',
-  model: 'googleai/gemini-1.5-flash',
-  tools: [findAttendersTool],
-  input: { schema: MedicalAttenderInputSchema },
-  output: { schema: MedicalAttenderOutputSchema },
-  prompt: `You are a helpful assistant for finding senior care. A user has provided a location. Use the findAttendersTool to find medical attenders in that location.
-
-Location: {{{location}}}
-
-If the tool returns a list of attenders, present them in the output.
-If the tool returns an empty list, set the 'response' field to a helpful message indicating that no attenders were found for the specified location and suggest trying a nearby city.
-`,
-});
-
-const medicalAttenderFlow = ai.defineFlow(
-  {
-    name: 'medicalAttenderFlow',
-    inputSchema: MedicalAttenderInputSchema,
-    outputSchema: MedicalAttenderOutputSchema,
-  },
-  async (input) => {
-    const { output } = await medicalAttenderPrompt(input);
-    if (!output) {
-      throw new Error('The AI model did not return a valid response.');
+    const key = input.location.toLowerCase().trim();
+    const result = await findAttendersTool({ location: key });
+    
+    if (result.attenders.length > 0) {
+        return {
+            attenders: result.attenders,
+            response: `Found ${result.attenders.length} doctors.`
+        };
+    } else {
+        return {
+            attenders: [],
+            response: `Sorry, no doctors were found for "${input.location}". Please try a different city in Tamil Nadu.`
+        };
     }
-    return output;
-  }
-);
+}

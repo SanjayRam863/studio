@@ -8,10 +8,10 @@ import { Search, ShoppingCart, Plus, Minus, Upload, Package } from "lucide-react
 import Image from 'next/image';
 
 const sampleMedicines = [
-  { id: 1, name: "Paracetamol 500mg", price: 5.99, image: "https://picsum.photos/200/200?random=1", dataAiHint: "medicine pills" },
-  { id: 2, name: "Ibuprofen 200mg", price: 7.49, image: "https://picsum.photos/200/200?random=2", dataAiHint: "medicine pills" },
-  { id: 3, name: "Amoxicillin 250mg", price: 12.00, image: "https://picsum.photos/200/200?random=3", dataAiHint: "medicine box" },
-  { id: 4, name: "Cetirizine 10mg", price: 8.99, image: "https://picsum.photos/200/200?random=4", dataAiHint: "allergy pills" },
+  { id: 1, name: "Paracetamol 500mg", price: 20.50, image: "https://picsum.photos/200/200?random=1", dataAiHint: "medicine pills" },
+  { id: 2, name: "Ibuprofen 200mg", price: 45.00, image: "https://picsum.photos/200/200?random=2", dataAiHint: "medicine pills" },
+  { id: 3, name: "Amoxicillin 250mg", price: 75.00, image: "https://picsum.photos/200/200?random=3", dataAiHint: "medicine box" },
+  { id: 4, name: "Cetirizine 10mg", price: 30.00, image: "https://picsum.photos/200/200?random=4", dataAiHint: "allergy pills" },
 ];
 
 type CartItem = {
@@ -66,7 +66,7 @@ export function MedicineDeliveryView() {
                   <Image src={med.image} alt={med.name} fill style={{objectFit: 'cover'}} className="rounded-md" data-ai-hint={med.dataAiHint}/>
                 </div>
                 <h3 className="font-semibold text-md">{med.name}</h3>
-                <p className="text-lg font-bold text-primary">${med.price.toFixed(2)}</p>
+                <p className="text-lg font-bold text-primary">₹{med.price.toFixed(2)}</p>
               </CardContent>
               <CardFooter>
                 <Button className="w-full" onClick={() => addToCart(med)}>
@@ -88,7 +88,7 @@ export function MedicineDeliveryView() {
                  <div key={item.id} className="flex justify-between items-center">
                     <div>
                         <p className="font-medium">{item.name}</p>
-                        <p className="text-sm text-muted-foreground">${item.price.toFixed(2)}</p>
+                        <p className="text-sm text-muted-foreground">₹{item.price.toFixed(2)}</p>
                     </div>
                     <div className="flex items-center gap-2">
                         <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => updateQuantity(item.id, -1)}><Minus/></Button>
@@ -104,7 +104,7 @@ export function MedicineDeliveryView() {
             <CardFooter className="flex-col items-stretch gap-4">
                 <div className="flex justify-between font-bold text-lg">
                     <span>Total</span>
-                    <span>${totalCost}</span>
+                    <span>₹{totalCost}</span>
                 </div>
                 <Button className="w-full"><Package className="mr-2"/> Checkout</Button>
             </CardFooter>

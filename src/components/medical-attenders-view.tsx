@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, MapPin, Search } from "lucide-react";
+import { Loader2, MapPin, Search, Stethoscope, Phone } from "lucide-react";
+import QRCode from 'qrcode.react';
 
 import { Button } from "@/components/ui/button";
 import {
@@ -17,8 +18,18 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "./ui/card";
 import { findMedicalAttenders, MedicalAttenderOutput } from "@/ai/flows/medical-attender-finder";
+import { Badge } from "./ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+
 
 const formSchema = z.object({
   location: z.string().min(3, "Please enter a valid location."),
@@ -48,7 +59,7 @@ export function MedicalAttendersView() {
       console.error("Error finding medical attenders:", error);
       toast({
         title: "Error",
-        description: "Failed to find medical attenders. Please try again.",
+        description: "Failed to find doctors. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -60,8 +71,8 @@ export function MedicalAttendersView() {
     <>
       <Card>
         <CardHeader>
-            <CardTitle>Search for Attenders</CardTitle>
-            <CardDescription>Enter a location to find senior care services.</CardDescription>
+            <CardTitle>Doctor Search</CardTitle>
+            <CardDescription>Enter a city to find healthcare professionals near you.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -71,7 +82,7 @@ export function MedicalAttendersView() {
                 name="location"
                 render={({ field }) => (
                   <FormItem className="flex-grow">
-                    <FormLabel>Location</FormLabel>
+                    <FormLabel>Your Location</FormLabel>
                     <FormControl>
                       <Input placeholder="e.g., Chennai, TN" {...field} />
                     </FormControl>
@@ -79,7 +90,7 @@ export function MedicalAttendersView() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" disabled={isLoading}>
+              <Button type="submit" disabled={isLoading} className="h-10">
                 {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
                 Search
               </Button>
@@ -95,33 +106,59 @@ export function MedicalAttendersView() {
       )}
 
       {results && (
-        <Card className="mt-8">
-          <CardHeader>
-            <CardTitle>Search Results</CardTitle>
-            <CardDescription>Found {results.attenders.length} medical attenders near {form.getValues('location')}.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <div className="mt-8">
+            <h2 className="text-2xl font-bold tracking-tight mb-4">
+                {results.attenders.length > 0 
+                    ? `Found ${results.attenders.length} doctors near ${form.getValues('location')}`
+                    : 'No doctors found'
+                }
+            </h2>
             {results.attenders.length > 0 ? (
-                results.attenders.map((attender, index) => (
-                    <Card key={index}>
-                        <CardHeader>
-                            <CardTitle>{attender.name}</CardTitle>
-                            <CardDescription>{attender.services.join(', ')}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-2">
-                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                             <MapPin className="h-4 w-4" /> <span>{attender.address}</span>
-                           </div>
-                           <p className="text-sm">{attender.contact}</p>
-                        </CardContent>
-                    </Card>
-                ))
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {results.attenders.map((attender, index) => {
+                        const qrValue = `BEGIN:VCARD\nVERSION:3.0\nFN:${attender.name}\nORG:${attender.address}\nTEL:${attender.contact}\nEND:VCARD`;
+                        return (
+                            <Card key={index} className="flex flex-col">
+                                <CardHeader>
+                                    <CardTitle>{attender.name}</CardTitle>
+                                    <CardDescription className="flex items-center gap-2 pt-1">
+                                        <Stethoscope className="h-4 w-4" /> {attender.services.join(', ')}
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent className="flex-grow space-y-3">
+                                <div className="flex items-start gap-3 text-sm text-muted-foreground">
+                                    <MapPin className="h-4 w-4 mt-0.5" /> <span>{attender.address}</span>
+                                </div>
+                                <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                                    <Phone className="h-4 w-4" /> <span>{attender.contact}</span>
+                                </div>
+                                </CardContent>
+                                <CardFooter>
+                                    <Dialog>
+                                        <DialogTrigger asChild>
+                                            <Button variant="outline" className="w-full">View QR Code</Button>
+                                        </DialogTrigger>
+                                        <DialogContent className="sm:max-w-xs">
+                                            <DialogHeader>
+                                                <DialogTitle>{attender.name}</DialogTitle>
+                                                <DialogDescription>
+                                                    Scan this code to save contact details.
+                                                </DialogDescription>
+                                            </DialogHeader>
+                                            <div className="flex justify-center p-4 bg-white rounded-md">
+                                                <QRCode value={qrValue} size={200} />
+                                            </div>
+                                        </DialogContent>
+                                    </Dialog>
+                                </CardFooter>
+                            </Card>
+                        )
+                    })}
+                </div>
             ) : (
-                <p className="text-sm text-muted-foreground text-center py-8">{results.response}</p>
+                <p className="text-sm text-muted-foreground text-center py-10">{results.response}</p>
             )}
-            
-          </CardContent>
-        </Card>
+        </div>
       )}
     </>
   );
