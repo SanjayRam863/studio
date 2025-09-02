@@ -73,7 +73,7 @@ export function MedicalAttendersView() {
                   <FormItem className="flex-grow">
                     <FormLabel>Location</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., San Francisco, CA" {...field} />
+                      <Input placeholder="e.g., Chennai, TN" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

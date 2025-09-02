@@ -16,7 +16,7 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
 const MedicalAttenderInputSchema = z.object({
-  location: z.string().describe('The city and state to search for medical attenders (e.g., "San Francisco, CA").'),
+  location: z.string().describe('The city and state to search for medical attenders (e.g., "Chennai, TN").'),
 });
 export type MedicalAttenderInput = z.infer<typeof MedicalAttenderInputSchema>;
 
@@ -50,12 +50,12 @@ const findAttendersTool = ai.defineTool(
 
         // Simulate a database of attenders
         const mockDatabase: { [key: string]: z.infer<typeof AttenderSchema>[] } = {
-            "san francisco, ca": [
-                { name: "SF Senior Care", address: "123 Main St, San Francisco, CA", contact: "555-1234", services: ["In-home care", "Meal prep"] },
-                { name: "Golden Gate Attenders", address: "456 Market St, San Francisco, CA", contact: "555-5678", services: ["24/7 support", "Medical reminders"] },
+            "chennai, tn": [
+                { name: "Chennai Senior Care", address: "123 Anna Salai, Chennai, TN", contact: "044-12345678", services: ["In-home care", "Meal prep"] },
+                { name: "Marina Home Health", address: "456 Beach Rd, Chennai, TN", contact: "044-87654321", services: ["24/7 support", "Medical reminders"] },
             ],
-            "new york, ny": [
-                { name: "Big Apple Home Health", address: "789 Broadway, New York, NY", contact: "555-9876", services: ["Companionship", "Personal care"] },
+            "coimbatore, tn": [
+                { name: "Kovai Elder Services", address: "789 Race Course Rd, Coimbatore, TN", contact: "0422-98765432", services: ["Companionship", "Personal care"] },
             ],
         };
 
