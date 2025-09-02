@@ -7,8 +7,10 @@
  * - SymptomCheckerDiseaseSuggestionsInput - The input type for the function.
  * - SymptomCheckerDiseaseSuggestionsOutput - The output type for the function.
  */
-import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import {ai} from '@/ai/genkit';
+import {generate} from '@genkit-ai/ai';
+import {geminiPro} from '@genkit-ai/googleai';
+import {z} from 'genkit';
 
 const SymptomCheckerDiseaseSuggestionsInputSchema = z.object({
   symptoms: z
@@ -43,18 +45,13 @@ export type SymptomCheckerDiseaseSuggestionsOutput = z.infer<
 export async function symptomCheckerDiseaseSuggestions(
   input: SymptomCheckerDiseaseSuggestionsInput
 ): Promise<SymptomCheckerDiseaseSuggestionsOutput> {
-  console.log("Checking symptoms for:", input);
-  // MOCK IMPLEMENTATION
-  const mockOutput = {
-    suggestedConditions: "Based on your symptoms of '" + input.symptoms + "', some possibilities include: Common Cold, Influenza, or a Sinus Infection. This is not a diagnosis.",
-    recommendations: "Given that you're experiencing '" + input.symptoms + "', it's important to rest and stay hydrated. If symptoms worsen or you experience difficulty breathing, seek medical attention immediately.",
-    prescription: `Patient Name: User
-Date: ${new Date().toLocaleDateString()}
-Medication: Ibuprofen 200mg
-Dosage: 1-2 tablets every 4-6 hours as needed
-Reason: For relief of headache and fever
-Doctor: Dr. AI Assistant (Simulated)
-Disclaimer: This is a simulation and not a substitute for professional medical advice.`
-  };
-  return new Promise(resolve => setTimeout(() => resolve(mockOutput), 1000));
+  console.log('Checking symptoms for:', input);
+  const llmResponse = await generate({
+    model: geminiPro,
+    prompt: `Based on the following symptoms: ${input.symptoms}, suggest potential conditions, provide recommendations, and generate a simulated prescription for over-the-counter medication. The prescription should include a disclaimer that it is not a substitute for professional medical advice.`,
+    output: {
+      schema: SymptomCheckerDiseaseSuggestionsOutputSchema,
+    },
+  });
+  return llmResponse.output()!;
 }

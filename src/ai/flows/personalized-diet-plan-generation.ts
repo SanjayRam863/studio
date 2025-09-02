@@ -12,6 +12,8 @@
  */
 
 import {ai} from '@/ai/genkit';
+import {generate} from '@genkit-ai/ai';
+import {geminiPro} from '@genkit-ai/googleai';
 import {z} from 'genkit';
 
 const PersonalizedDietPlanInputSchema = z.object({
@@ -57,25 +59,18 @@ export async function generatePersonalizedDietPlan(
   input: PersonalizedDietPlanInput
 ): Promise<PersonalizedDietPlanOutput> {
   console.log('Generating diet plan for:', input);
-  // MOCK IMPLEMENTATION
-  const plan = {
-    dietPlan: [
-      { name: 'Breakfast', ingredients: 'Oatmeal with berries and nuts', calories: 400 },
-      { name: 'Lunch', ingredients: 'Grilled chicken salad with vinaigrette', calories: 600 },
-      { name: 'Dinner', ingredients: 'Salmon with quinoa and steamed vegetables', calories: 700 }
-    ],
-    totalCalories: 1700,
-    shoppingList: [
-      { item: 'Oats', quantity: '100g' },
-      { item: 'Mixed Berries', quantity: '50g' },
-      { item: 'Almonds', quantity: '20g' },
-      { item: 'Chicken Breast', quantity: '150g' },
-      { item: 'Mixed Greens', quantity: '100g' },
-      { item: 'Salmon Fillet', quantity: '150g' },
-      { item: 'Quinoa', quantity: '80g' },
-      { item: 'Broccoli', quantity: '1 cup' }
-    ],
-    notes: `This is a sample balanced diet plan. For your specific condition (${input.medicalConditions}), it's crucial to consult with a registered dietitian or your doctor. This plan provides a general framework for healthy eating.`
-  };
-  return new Promise(resolve => setTimeout(() => resolve(plan), 1000));
+  const llmResponse = await generate({
+    model: geminiPro,
+    prompt: `Generate a personalized one-day diet plan for a user with the following medical conditions: ${input.medicalConditions}.
+The target daily calorie intake is ${input.calorieNeeds} calories.
+The plan should include three meals: breakfast, lunch, and dinner.
+For each meal, provide a name, a list of ingredients, and the approximate calorie count.
+Also, create a shopping list for all the ingredients required for the plan.
+Finally, add some important notes, including a brief summary of the diet\'s focus and a disclaimer to consult a doctor.
+Ensure the total calories for the day are as close to the target as possible.`,
+    output: {
+      schema: PersonalizedDietPlanOutputSchema,
+    },
+  });
+  return llmResponse.output()!;
 }
