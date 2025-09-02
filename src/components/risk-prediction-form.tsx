@@ -144,7 +144,7 @@ export function RiskPredictionForm() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Body Mass Index (BMI)</FormLabel>
-                      <FormControl><Input type="number" {...field} /></FormControl>
+                      <FormControl><Input type="number" step="0.1" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
