@@ -1,10 +1,11 @@
+
 "use client";
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, MapPin, Search, Stethoscope, Phone } from "lucide-react";
+import { Loader2, MapPin, Search, Stethoscope, Phone, LocateFixed } from "lucide-react";
 import QRCode from 'qrcode.react';
 
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,6 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "./ui/card";
 import { findMedicalAttenders, MedicalAttenderOutput } from "@/ai/flows/medical-attender-finder";
-import { Badge } from "./ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -55,6 +55,12 @@ export function MedicalAttendersView() {
     try {
       const result = await findMedicalAttenders(values);
       setResults(result);
+      if (result.attenders.length === 0) {
+        toast({
+            title: "No Doctors Found",
+            description: `We couldn't find any doctors for "${values.location}". Please try a different location in Tamil Nadu.`,
+        });
+      }
     } catch (error) {
       console.error("Error finding medical attenders:", error);
       toast({
@@ -67,16 +73,26 @@ export function MedicalAttendersView() {
     }
   }
 
+  function handleUseLocation() {
+    // Simulate getting user's location
+    const simulatedLocation = "Coimbatore, TN";
+    form.setValue("location", simulatedLocation);
+    toast({
+        title: "Location Fetched",
+        description: `Location set to "${simulatedLocation}".`,
+    });
+  }
+
   return (
     <>
       <Card>
         <CardHeader>
-            <CardTitle>Doctor Search</CardTitle>
+            <CardTitle>Find a Doctor</CardTitle>
             <CardDescription>Enter a city to find healthcare professionals near you.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="flex items-end gap-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-wrap items-end gap-4">
               <FormField
                 control={form.control}
                 name="location"
@@ -90,10 +106,15 @@ export function MedicalAttendersView() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" disabled={isLoading} className="h-10">
-                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
-                Search
-              </Button>
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" onClick={handleUseLocation} className="h-10">
+                    <LocateFixed className="mr-2 h-4 w-4" /> Use My Location
+                </Button>
+                <Button type="submit" disabled={isLoading} className="h-10">
+                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
+                    Search
+                </Button>
+              </div>
             </form>
           </Form>
         </CardContent>
