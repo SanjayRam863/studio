@@ -9,6 +9,7 @@
  * }
  */
 import { ai } from '@/ai/genkit';
+import { generate } from '@genkit-ai/ai';
 import { z } from 'genkit';
 
 const FirstAidInputSchema = z.object({
@@ -34,19 +35,16 @@ export async function generateFirstAidInstructions(
   input: FirstAidInput
 ): Promise<FirstAidOutput> {
   console.log('Generating first aid for:', input);
-    // MOCK IMPLEMENTATION
-    const mockOutput = {
-        instructions: `### Assess the Scene
-- Ensure the area is safe for you and the injured person.
-### For a Minor Cut
-- Wash your hands.
-- Apply gentle pressure with a clean cloth to stop the bleeding.
-- Clean the wound with water.
-- Apply an antibiotic ointment and a bandage.
-### When to Call for Help
-- If the bleeding is severe and doesn't stop with pressure.
-- If the cut is deep or shows signs of infection (redness, swelling, pus).`,
-        disclaimer: "This is a first aid guide and not a substitute for professional medical evaluation. For any serious injury, call your local emergency number (e.g., 911) immediately."
-    };
-    return new Promise(resolve => setTimeout(() => resolve(mockOutput), 1000));
+
+  const llmResponse = await generate({
+    model: 'gemini-1.5-flash-latest',
+    prompt: `Generate a detailed, step-by-step first aid guide for the following medical problem: "${input.problem}".
+    Structure the instructions with markdown, using "###" for main headings (like "Assess the Scene", "For a [Problem]", "When to Call for Help") and "- " for list items under each heading.
+    Also, provide a clear and prominent disclaimer stating that this is a first aid guide and not a substitute for professional medical evaluation, and to call a local emergency number for any serious injury.`,
+    output: {
+      schema: FirstAidOutputSchema,
+    },
+  });
+
+  return llmResponse.output()!;
 }

@@ -9,6 +9,7 @@
  */
 
 import {ai} from '@/ai/genkit';
+import { generate } from '@genkit-ai/ai';
 import {z} from 'zod';
 
 const RiskPredictionExplanationInputSchema = z.object({
@@ -48,18 +49,17 @@ export async function riskPredictionExplanation(
   input: RiskPredictionExplanationInput
 ): Promise<RiskPredictionExplanationOutput> {
     console.log("Generating risk explanation for:", input);
-    // MOCK IMPLEMENTATION
-    const mockOutput = {
-        explanation: `Your risk score of ${input.riskScore}% for ${input.condition} is influenced by factors such as: ${input.factors}. Each of these elements can contribute to the likelihood of developing this condition over time. A higher BMI, for instance, can strain the cardiovascular system.`,
-        recommendations: `### Dietary Changes
-- Reduce sodium intake to lower blood pressure.
-- Focus on whole grains, fruits, and vegetables.
-- Limit processed foods and sugary drinks.
-### Lifestyle Modifications
-- Engage in at least 30 minutes of moderate exercise daily.
-- If you smoke, consider quitting.
-- Monitor your blood pressure regularly.
-**Disclaimer**: This is a simulation and not a substitute for professional medical advice. Always consult a healthcare provider for an accurate diagnosis and treatment plan.`
-    };
-    return new Promise(resolve => setTimeout(() => resolve(mockOutput), 1000));
+    
+    const llmResponse = await generate({
+        model: 'gemini-1.5-flash-latest',
+        prompt: `A user has a simulated risk score of ${input.riskScore}% for ${input.condition}. The contributing factors are: ${input.factors}.
+        1.  Provide a clear, easy-to-understand explanation of what this risk score means and briefly explain how the listed factors contribute to the risk for this specific condition.
+        2.  Provide a set of actionable recommendations to help manage and reduce this risk. Structure the recommendations with markdown, using "###" for headings (e.g., "Dietary Changes", "Lifestyle Modifications") and "-" for list items under each heading.
+        3.  Include a final, bolded disclaimer: "**Disclaimer**: This is a simulation and not a substitute for professional medical advice. Always consult a healthcare provider for an accurate diagnosis and treatment plan."`,
+        output: {
+            schema: RiskPredictionExplanationOutputSchema,
+        }
+    });
+
+    return llmResponse.output()!;
 }
