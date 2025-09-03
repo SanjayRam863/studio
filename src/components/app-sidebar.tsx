@@ -27,57 +27,96 @@ import {
 import { cn } from "@/lib/utils";
 import { Icons } from "./icons";
 import { useSidebar } from "./ui/sidebar";
+import { Separator } from "./ui/separator";
 
-const navItems = [
-  { href: "/", label: "Dashboard", icon: Home },
-  { href: "/risk-prediction", label: "Risk Prediction", icon: HeartPulse },
-  { href: "/urgency-assessment", label: "Urgency Assessment", icon: ShieldAlert },
-  { href: "/diet-plan", label: "Diet Plans", icon: Apple },
-  { href: "/medication", label: "Medication", icon: Bell },
-  { href: "/insulin-tracker", label: "Insulin Tracker", icon: Droplets },
-  { href: "/symptom-checker", label: "Symptom Checker", icon: Stethoscope },
-  { href: "/appointment-finder", label: "Appointment Finder", icon: CalendarClock },
-  { href: "/emergency-info", label: "Emergency Info", icon: Contact },
-  { href: "/blood-transfusion", label: "Blood Transfusion", icon: Syringe },
-  { href: "/medicine-delivery", label: "Medicine Delivery", icon: Truck },
-  { href: "/medical-attenders", label: "Medical Attenders", icon: HelpingHand },
-  { href: "/first-aid", label: "First Aid", icon: Ambulance },
-];
+const navCategories = [
+    {
+      title: "Home",
+      items: [
+        { href: "/", label: "Dashboard", icon: Home },
+      ]
+    },
+    {
+        title: "Health Assessment",
+        items: [
+            { href: "/risk-prediction", label: "Risk Prediction", icon: HeartPulse },
+            { href: "/urgency-assessment", label: "Urgency Assessment", icon: ShieldAlert },
+            { href: "/symptom-checker", label: "Symptom Checker", icon: Stethoscope },
+        ]
+    },
+    {
+        title: "Management",
+        items: [
+            { href: "/diet-plan", label: "Diet Plans", icon: Apple },
+            { href: "/medication", label: "Medication", icon: Bell },
+            { href: "/insulin-tracker", label: "Insulin Tracker", icon: Droplets },
+            { href: "/appointment-finder", label: "Appointment Finder", icon: CalendarClock },
+        ]
+    },
+    {
+        title: "Emergency & Support",
+        items: [
+            { href: "/emergency-info", label: "Emergency Info", icon: Contact },
+            { href: "/first-aid", label: "First Aid", icon: Ambulance },
+            { href: "/blood-transfusion", label: "Blood Transfusion", icon: Syringe },
+        ]
+    },
+    {
+        title: "Additional Services",
+        items: [
+            { href: "/medicine-delivery", label: "Medicine Delivery", icon: Truck },
+            { href: "/medical-attenders", label: "Medical Attenders", icon: HelpingHand },
+        ]
+    }
+]
+
 
 export function AppSidebarNav({ isMobile = false }: { isMobile?: boolean }) {
   const pathname = usePathname();
   const { isSidebarOpen } = useSidebar();
   const NavLink = isMobile || isSidebarOpen ? 'div' : TooltipTrigger;
 
-  const navLinks = navItems.map((item) => {
-    const linkContent = (
-      <Link
-        href={item.href}
-        className={cn(
-          "flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground",
-          pathname === item.href && "text-foreground bg-accent rounded-md",
-          isSidebarOpen ? "py-2" : "h-9 w-9 justify-center rounded-lg",
-           isMobile && "py-2"
-        )}
-      >
-        <item.icon className="h-5 w-5" />
-        {(isSidebarOpen || isMobile) && <span className="truncate">{item.label}</span>}
-      </Link>
-    );
+  return (
+    <>
+      {navCategories.map((category, index) => (
+        <div key={category.title} className={cn("space-y-2", isSidebarOpen ? "w-full" : "")}>
+          {(isSidebarOpen || isMobile) && (
+            <h3 className="px-2.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{category.title}</h3>
+          )}
+          {category.items.map((item) => {
+            const linkContent = (
+              <Link
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground",
+                  pathname === item.href && "text-foreground bg-accent rounded-md",
+                  isSidebarOpen ? "py-2" : "h-9 w-9 justify-center rounded-lg",
+                  isMobile && "py-2"
+                )}
+              >
+                <item.icon className="h-5 w-5" />
+                {(isSidebarOpen || isMobile) && <span className="truncate">{item.label}</span>}
+              </Link>
+            );
 
-    if (isMobile || isSidebarOpen) {
-      return <div key={item.href}>{linkContent}</div>
-    }
+            if (isMobile || isSidebarOpen) {
+              return <div key={item.href}>{linkContent}</div>;
+            }
 
-    return (
-      <Tooltip key={item.href}>
-        <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
-        <TooltipContent side="right">{item.label}</TooltipContent>
-      </Tooltip>
-    );
-  });
-
-  return <>{navLinks}</>;
+            return (
+              <Tooltip key={item.href}>
+                <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
+                <TooltipContent side="right">{item.label}</TooltipContent>
+              </Tooltip>
+            );
+          })}
+           {index < navCategories.length - 1 && !(isSidebarOpen || isMobile) && (
+              <Separator className="my-2" />
+           )}
+        </div>
+      ))}
+    </>
+  );
 }
 
 export function AppSidebar() {
@@ -100,8 +139,8 @@ export function AppSidebar() {
             <span className={cn("sr-only", isSidebarOpen && "!not-sr-only !whitespace-nowrap")}>HealthWise Hub</span>
           </Link>
           <nav className={cn(
-              "flex flex-col gap-4",
-              isSidebarOpen ? "items-stretch w-full px-2" : "items-center"
+              "flex flex-col gap-4 mt-4",
+              isSidebarOpen ? "items-stretch w-full px-2 space-y-4" : "items-center"
           )}>
             <AppSidebarNav />
           </nav>
