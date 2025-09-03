@@ -9,7 +9,6 @@
  */
 import {ai} from '@/ai/genkit';
 import {generate} from '@genkit-ai/ai';
-import {geminiPro} from '@genkit-ai/googleai';
 import {z} from 'genkit';
 
 const SymptomCheckerDiseaseSuggestionsInputSchema = z.object({
@@ -47,7 +46,7 @@ export async function symptomCheckerDiseaseSuggestions(
 ): Promise<SymptomCheckerDiseaseSuggestionsOutput> {
   console.log('Checking symptoms for:', input);
   const llmResponse = await generate({
-    model: geminiPro,
+    model: 'gemini-1.5-flash-latest',
     prompt: `Based on the following symptoms: ${input.symptoms}, suggest potential conditions, provide recommendations, and generate a simulated prescription for over-the-counter medication. The prescription should include a disclaimer that it is not a substitute for professional medical advice.`,
     output: {
       schema: SymptomCheckerDiseaseSuggestionsOutputSchema,

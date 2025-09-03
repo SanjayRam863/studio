@@ -6,7 +6,6 @@
  */
 import {ai} from '@/ai/genkit';
 import {generate} from '@genkit-ai/ai';
-import {geminiPro} from '@genkit-ai/googleai';
 import {
   UrgencyAssessmentInputSchema,
   UrgencyAssessmentOutputSchema,
@@ -18,7 +17,7 @@ export async function assessUrgencyAndSuggestNextSteps(
   input: UrgencyAssessmentInput
 ): Promise<UrgencyAssessmentOutput> {
   const llmResponse = await generate({
-    model: geminiPro,
+    model: 'gemini-1.5-flash-latest',
     prompt: `Assess the urgency of a medical situation based on the following health metrics and symptoms:
     - Heart Rate: ${input.heartRate} bpm
     - Blood Pressure: ${input.bloodPressureSystolic}/${input.bloodPressureDiastolic} mmHg
