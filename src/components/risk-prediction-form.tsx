@@ -38,7 +38,8 @@ const conditions = ["Heart Disease", "Diabetes", "Stroke"] as const;
 const formSchema = z.object({
   condition: z.enum(conditions),
   age: z.coerce.number().min(18, "Age must be 18 or older.").max(120),
-  bmi: z.coerce.number().min(10).max(60),
+  height: z.coerce.number().min(100, "Height must be at least 100 cm.").max(250, "Height seems too high."),
+  weight: z.coerce.number().min(30, "Weight must be at least 30 kg.").max(300, "Weight seems too high."),
   isSmoker: z.boolean().default(false),
   hasFamilyHistory: z.boolean().default(false),
 });
@@ -72,7 +73,8 @@ export function RiskPredictionForm() {
     defaultValues: {
       condition: "Heart Disease",
       age: 45,
-      bmi: 25,
+      height: 170,
+      weight: 70,
       isSmoker: false,
       hasFamilyHistory: false,
     },
@@ -82,17 +84,21 @@ export function RiskPredictionForm() {
     setIsLoading(true);
     setResult(null);
 
+    // Calculate BMI
+    const heightInMeters = values.height / 100;
+    const bmi = values.weight / (heightInMeters * heightInMeters);
+
     // Simulate risk score generation
     let riskScore = 10;
     riskScore += (values.age - 18) * 0.5;
-    riskScore += (values.bmi - 18.5) * 1.5;
+    riskScore += (bmi - 18.5) * 1.5;
     if (values.isSmoker) riskScore += 20;
     if (values.hasFamilyHistory) riskScore += 15;
     riskScore = Math.min(Math.max(Math.round(riskScore), 5), 99);
     
     const factors: string[] = [];
     if (values.age) factors.push(`Age: ${values.age}`);
-    if (values.bmi) factors.push(`BMI: ${values.bmi.toFixed(1)}`);
+    factors.push(`BMI: ${bmi.toFixed(1)}`);
     if (values.isSmoker) factors.push('Smoker');
     if (values.hasFamilyHistory) factors.push('Family history of condition');
 
@@ -143,7 +149,7 @@ export function RiskPredictionForm() {
                   </FormItem>
                 )}
               />
-              <div className="grid md:grid-cols-2 gap-6">
+              <div className="grid md:grid-cols-3 gap-6">
                 <FormField
                   control={form.control}
                   name="age"
@@ -157,11 +163,22 @@ export function RiskPredictionForm() {
                 />
                 <FormField
                   control={form.control}
-                  name="bmi"
+                  name="height"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Body Mass Index (BMI)</FormLabel>
-                      <FormControl><Input type="number" step="0.1" {...field} /></FormControl>
+                      <FormLabel>Height (cm)</FormLabel>
+                      <FormControl><Input type="number" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="weight"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Weight (kg)</FormLabel>
+                      <FormControl><Input type="number" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
