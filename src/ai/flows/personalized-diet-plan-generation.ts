@@ -12,7 +12,6 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {generate} from '@genkit-ai/ai';
 import {z} from 'genkit';
 
 const PersonalizedDietPlanInputSchema = z.object({
@@ -58,7 +57,7 @@ export async function generatePersonalizedDietPlan(
   input: PersonalizedDietPlanInput
 ): Promise<PersonalizedDietPlanOutput> {
   console.log('Generating diet plan for:', input);
-  const llmResponse = await generate({
+  const llmResponse = await ai.generate({
     model: 'gemini-1.5-flash-latest',
     prompt: `Generate a personalized one-day diet plan for a user with the following medical conditions: ${input.medicalConditions}.
 The target daily calorie intake is ${input.calorieNeeds} calories.
@@ -71,5 +70,5 @@ Ensure the total calories for the day are as close to the target as possible.`,
       schema: PersonalizedDietPlanOutputSchema,
     },
   });
-  return llmResponse.output()!;
+  return llmResponse.output!;
 }

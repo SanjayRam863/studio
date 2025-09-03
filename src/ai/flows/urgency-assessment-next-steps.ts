@@ -5,7 +5,6 @@
  * - assessUrgencyAndSuggestNextSteps - A function that assesses urgency and suggests next steps.
  */
 import {ai} from '@/ai/genkit';
-import {generate} from '@genkit-ai/ai';
 import {
   UrgencyAssessmentInputSchema,
   UrgencyAssessmentOutputSchema,
@@ -16,7 +15,7 @@ import {
 export async function assessUrgencyAndSuggestNextSteps(
   input: UrgencyAssessmentInput
 ): Promise<UrgencyAssessmentOutput> {
-  const llmResponse = await generate({
+  const llmResponse = await ai.generate({
     model: 'gemini-1.5-flash-latest',
     prompt: `Assess the urgency of a medical situation based on the following health metrics and symptoms:
     - Heart Rate: ${input.heartRate} bpm
@@ -29,5 +28,5 @@ export async function assessUrgencyAndSuggestNextSteps(
       schema: UrgencyAssessmentOutputSchema,
     },
   });
-  return llmResponse.output()!;
+  return llmResponse.output!;
 }

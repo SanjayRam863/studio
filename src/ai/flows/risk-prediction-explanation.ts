@@ -9,7 +9,6 @@
  */
 
 import {ai} from '@/ai/genkit';
-import { generate } from '@genkit-ai/ai';
 import {z} from 'zod';
 
 const RiskPredictionExplanationInputSchema = z.object({
@@ -50,7 +49,7 @@ export async function riskPredictionExplanation(
 ): Promise<RiskPredictionExplanationOutput> {
     console.log("Generating risk explanation for:", input);
     
-    const llmResponse = await generate({
+    const llmResponse = await ai.generate({
         model: 'gemini-1.5-flash-latest',
         prompt: `A user has a simulated risk score of ${input.riskScore}% for ${input.condition}. The contributing factors are: ${input.factors}.
         1.  Provide a clear, easy-to-understand explanation of what this risk score means and briefly explain how the listed factors contribute to the risk for this specific condition.
@@ -61,5 +60,5 @@ export async function riskPredictionExplanation(
         }
     });
 
-    return llmResponse.output()!;
+    return llmResponse.output!;
 }

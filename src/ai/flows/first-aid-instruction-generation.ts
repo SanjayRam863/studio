@@ -9,7 +9,6 @@
  * }
  */
 import { ai } from '@/ai/genkit';
-import { generate } from '@genkit-ai/ai';
 import { z } from 'genkit';
 
 const FirstAidInputSchema = z.object({
@@ -36,7 +35,7 @@ export async function generateFirstAidInstructions(
 ): Promise<FirstAidOutput> {
   console.log('Generating first aid for:', input);
 
-  const llmResponse = await generate({
+  const llmResponse = await ai.generate({
     model: 'gemini-1.5-flash-latest',
     prompt: `Generate a detailed, step-by-step first aid guide for the following medical problem: "${input.problem}".
     Structure the instructions with markdown, using "###" for main headings (like "Assess the Scene", "For a [Problem]", "When to Call for Help") and "- " for list items under each heading.
@@ -46,5 +45,5 @@ export async function generateFirstAidInstructions(
     },
   });
 
-  return llmResponse.output()!;
+  return llmResponse.output!;
 }
