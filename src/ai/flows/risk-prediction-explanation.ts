@@ -50,7 +50,7 @@ export async function riskPredictionExplanation(
     console.log("Generating risk explanation for:", input);
     
     const llmResponse = await ai.generate({
-        model: 'gemini-1.5-flash-latest',
+        model: 'googleai/gemini-1.5-flash-latest',
         prompt: `A user has a simulated risk score of ${input.riskScore}% for ${input.condition}. The contributing factors are: ${input.factors}.
         1.  Provide a clear, easy-to-understand explanation of what this risk score means and briefly explain how the listed factors contribute to the risk for this specific condition.
         2.  Provide a set of actionable recommendations to help manage and reduce this risk. Structure the recommendations with markdown, using "###" for headings (e.g., "Dietary Changes", "Lifestyle Modifications") and "-" for list items under each heading.

@@ -36,7 +36,7 @@ export async function generateFirstAidInstructions(
   console.log('Generating first aid for:', input);
 
   const llmResponse = await ai.generate({
-    model: 'gemini-1.5-flash-latest',
+    model: 'googleai/gemini-1.5-flash-latest',
     prompt: `Generate a detailed, step-by-step first aid guide for the following medical problem: "${input.problem}".
     Structure the instructions with markdown, using "###" for main headings (like "Assess the Scene", "For a [Problem]", "When to Call for Help") and "- " for list items under each heading.
     Also, provide a clear and prominent disclaimer stating that this is a first aid guide and not a substitute for professional medical evaluation, and to call a local emergency number for any serious injury.`,

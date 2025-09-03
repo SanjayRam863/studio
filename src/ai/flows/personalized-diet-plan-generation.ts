@@ -58,7 +58,7 @@ export async function generatePersonalizedDietPlan(
 ): Promise<PersonalizedDietPlanOutput> {
   console.log('Generating diet plan for:', input);
   const llmResponse = await ai.generate({
-    model: 'gemini-1.5-flash-latest',
+    model: 'googleai/gemini-1.5-flash-latest',
     prompt: `Generate a personalized one-day diet plan for a user with the following medical conditions: ${input.medicalConditions}.
 The target daily calorie intake is ${input.calorieNeeds} calories.
 The plan should include three meals: breakfast, lunch, and dinner.

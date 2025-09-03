@@ -16,7 +16,7 @@ export async function assessUrgencyAndSuggestNextSteps(
   input: UrgencyAssessmentInput
 ): Promise<UrgencyAssessmentOutput> {
   const llmResponse = await ai.generate({
-    model: 'gemini-1.5-flash-latest',
+    model: 'googleai/gemini-1.5-flash-latest',
     prompt: `Assess the urgency of a medical situation based on the following health metrics and symptoms:
     - Heart Rate: ${input.heartRate} bpm
     - Blood Pressure: ${input.bloodPressureSystolic}/${input.bloodPressureDiastolic} mmHg
