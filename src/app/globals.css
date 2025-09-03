@@ -85,4 +85,7 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+  .dark body {
+    @apply bg-gradient-to-br from-background to-secondary text-foreground;
+  }
 }
